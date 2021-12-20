@@ -26,7 +26,8 @@ python-based educational autopilot system
 	 - need to install Python IPC package on Navio so that Python side can access the shared memory vector.  `pip3 install sysv_ipc`
 	 - i modified some of the files in the Navio2 folder to get the GPS to work properly, so we can no longer include it as a submodule from Emlid.
 	 - TO COMPILE/RUN:
-		 - 
+		 -  
+		 - `git submodule update --init --recursive` to pull mavlink files if you didn't get them while cloning.
 		 - `make clean`
 		 - `make`
 		 - `./air`
