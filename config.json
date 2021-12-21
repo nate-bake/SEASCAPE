@@ -1,9 +1,18 @@
 {
-  "vectors": [
+  "RATES": {
+    "IMU_LOOP": 200,
+    "GPS_BAROMETER_LOOP": 5,
+    "RCIN_SERVO_LOOP": 50,
+    "BUILT-IN_ESTIMATOR": 100,
+    "BUILT-IN_CONTROLLER": 50,
+    "TELEMETRY_LOOP": 1
+  },
+
+  "VECTORS": [
     {
-      "id": "y",
-      "enabled": true,
-      "keys": [
+      "ID": "y",
+      "ENABLED": true,
+      "KEYS": [
         "GPS_UPDATES",
         "IMU_UPDATES",
         "IMU_1_AX",
@@ -45,9 +54,9 @@
     },
 
     {
-      "id": "xh",
-      "enabled": true,
-      "keys": [
+      "ID": "xh",
+      "ENABLED": true,
+      "KEYS": [
         "XH_UPDATES",
         "XH_X",
         "XH_Y",
@@ -65,9 +74,9 @@
     },
 
     {
-      "id": "servo",
-      "enabled": true,
-      "keys": [
+      "ID": "servo",
+      "ENABLED": true,
+      "KEYS": [
         "MODE_FLAG",
         "RCIN_0",
         "RCIN_1",
@@ -75,25 +84,49 @@
         "RCIN_3",
         "RCIN_4",
         "RCIN_5",
+        "RCIN_6",
+        "RCIN_7",
+        "RCIN_8",
+        "RCIN_9",
+        "RCIN_10",
+        "RCIN_11",
+        "RCIN_12",
+        "RCIN_13",
         "SERVO_0",
         "SERVO_1",
         "SERVO_2",
         "SERVO_3",
         "SERVO_4",
         "SERVO_5",
-        "CONTR_0",
-        "CONTR_1",
-        "CONTR_2",
-        "CONTR_3",
-        "CONTR_4",
-        "CONTR_5"
+        "SERVO_6",
+        "SERVO_7",
+        "SERVO_8",
+        "SERVO_9",
+        "SERVO_10",
+        "SERVO_11",
+        "SERVO_12",
+        "SERVO_13",
+        "CONTROLLER_0",
+        "CONTROLLER_1",
+        "CONTROLLER_2",
+        "CONTROLLER_3",
+        "CONTROLLER_4",
+        "CONTROLLER_5",
+        "CONTROLLER_6",
+        "CONTROLLER_7",
+        "CONTROLLER_8",
+        "CONTROLLER_9",
+        "CONTROLLER_10",
+        "CONTROLLER_11",
+        "CONTROLLER_12",
+        "CONTROLLER_13"
       ]
     },
 
     {
-      "id": "cmd",
-      "enabled": true,
-      "keys": ["PSI_C", "H_C"]
+      "ID": "cmd",
+      "ENABLED": true,
+      "KEYS": ["PSI_C", "H_C"]
     }
   ]
 }

@@ -9,6 +9,7 @@ python-based educational autopilot system
 - started a config.json file to define the indices for the shared memory.
 - created Makefile for compiling.
 - added MPU9250 to imu loop, allowing data from both IMUs to be available in the y vector.
+- added option to set loop rates in config file.
 
 ## TODO
 
@@ -16,7 +17,7 @@ python-based educational autopilot system
 - add our own estimator and controller to air.cpp and figure out how we want to log results.
 - create a test.py skeleton and sync it with air.cpp using a launch script.
 - figure out better ways to protect our code from goons.
-- add more customization options to config file, such as ability to select IMU or which estimator to use.
+- add more customization options to config file, such as ability to select IMU, which estimator to use, and RC transmitter configurations.
 - maybe break up air.cpp into multiple files to allow more flexibility?
 - add some preflight checks and warn the user if anything in the config file might be a problem.
 

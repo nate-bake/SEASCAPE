@@ -2,7 +2,6 @@ import sysv_ipc as ipc
 import struct
 import time
 
-
 path = "/tmp"
 key = ipc.ftok(path, 2333)
 shm = ipc.SharedMemory(key, 0, 0)

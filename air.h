@@ -34,4 +34,4 @@
 
 #define GETEKYDIR ("/tmp")
 #define PROJECTID (2333)
-#define SHMSIZE (2048)
+#define SHMSIZE (4096)
