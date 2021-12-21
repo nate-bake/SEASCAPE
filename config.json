@@ -1,93 +1,99 @@
 {
-    "vectors":[
-        {
-            "id":"y",
-            "enabled":true,
-            "keys":[
-                "GPS_UPDATES",
-                "IMU_UPDATES",
-                "IMU_AX",
-                "IMU_AY",
-                "IMU_AZ",
-                "IMU_GYRO_P",
-                "IMU_GYRO_Q",
-                "IMU_GYRO_R",
-                "IMU_MAG_X",
-                "IMU_MAG_Y",
-                "IMU_MAG_Z",
-                "BARO_PRES",
-                "BARO_INIT",
-                "GPS_POSN_LAT",
-                "GPS_POSN_LON",
-                "GPS_POSN_ALT",
-                "GPS_VEL_N",
-                "GPS_VEL_E",
-                "GPS_VEL_D",
-                "GPS_STATUS",
-                "ADC_A0",
-                "ADC_A1",
-                "ADC_A2",
-                "ADC_A3",
-                "ADC_A4",
-                "ADC_A5",
-                "ADC_CONSUMED",
-                "ADC_TIME"
-            ]
-        },
+  "vectors": [
+    {
+      "id": "y",
+      "enabled": true,
+      "keys": [
+        "GPS_UPDATES",
+        "IMU_UPDATES",
+        "IMU_1_AX",
+        "IMU_1_AY",
+        "IMU_1_AZ",
+        "IMU_1_GYRO_P",
+        "IMU_1_GYRO_Q",
+        "IMU_1_GYRO_R",
+        "IMU_1_MAG_X",
+        "IMU_1_MAG_Y",
+        "IMU_1_MAG_Z",
+        "IMU_2_AX",
+        "IMU_2_AY",
+        "IMU_2_AZ",
+        "IMU_2_GYRO_P",
+        "IMU_2_GYRO_Q",
+        "IMU_2_GYRO_R",
+        "IMU_2_MAG_X",
+        "IMU_2_MAG_Y",
+        "IMU_2_MAG_Z",
+        "BARO_PRES",
+        "BARO_INIT",
+        "GPS_POSN_LAT",
+        "GPS_POSN_LON",
+        "GPS_POSN_ALT",
+        "GPS_VEL_N",
+        "GPS_VEL_E",
+        "GPS_VEL_D",
+        "GPS_STATUS",
+        "ADC_A0",
+        "ADC_A1",
+        "ADC_A2",
+        "ADC_A3",
+        "ADC_A4",
+        "ADC_A5",
+        "ADC_CONSUMED",
+        "ADC_TIME"
+      ]
+    },
 
-        {
-            "id":"xh",
-            "enabled":true,
-            "keys":[
-                "XH_UPDATES",
-                "XH_X",
-                "XH_Y",
-                "XH_Z",
-                "XH_VT",
-                "XH_ALPHA",
-                "XH_BETA",
-                "XH_PHI",
-                "XH_THETA",
-                "XH_PSI",
-                "XH_P",
-                "XH_Q",
-                "XH_R"
-            ]
-        },
+    {
+      "id": "xh",
+      "enabled": true,
+      "keys": [
+        "XH_UPDATES",
+        "XH_X",
+        "XH_Y",
+        "XH_Z",
+        "XH_VT",
+        "XH_ALPHA",
+        "XH_BETA",
+        "XH_PHI",
+        "XH_THETA",
+        "XH_PSI",
+        "XH_P",
+        "XH_Q",
+        "XH_R"
+      ]
+    },
 
-        {
-            "id":"servo",
-            "enabled":true,
-            "keys":[
-                "MODE_FLAG",
-                "RCIN_0",
-                "RCIN_1",
-                "RCIN_2",
-                "RCIN_3",
-                "RCIN_4",
-                "RCIN_5",
-                "SERVO_0",
-                "SERVO_1",
-                "SERVO_2",
-                "SERVO_3",
-                "SERVO_4",
-                "SERVO_5",
-                "CONTR_0",
-                "CONTR_1",
-                "CONTR_2",
-                "CONTR_3",
-                "CONTR_4",
-                "CONTR_5"
-            ]
-        },
+    {
+      "id": "servo",
+      "enabled": true,
+      "keys": [
+        "MODE_FLAG",
+        "RCIN_0",
+        "RCIN_1",
+        "RCIN_2",
+        "RCIN_3",
+        "RCIN_4",
+        "RCIN_5",
+        "SERVO_0",
+        "SERVO_1",
+        "SERVO_2",
+        "SERVO_3",
+        "SERVO_4",
+        "SERVO_5",
+        "CONTR_0",
+        "CONTR_1",
+        "CONTR_2",
+        "CONTR_3",
+        "CONTR_4",
+        "CONTR_5"
+      ]
+    },
 
-        {
-            "id":"cmd",
-            "enabled":true,
-            "keys":[
-                "PSI_C",
-                "H_C"
-            ]
-        }
-    ]
+    {
+      "id": "cmd",
+      "enabled": true,
+      "keys": ["PSI_C", "H_C"]
+    }
+  ]
 }

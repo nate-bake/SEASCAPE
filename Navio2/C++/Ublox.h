@@ -76,7 +76,7 @@ private:
 
 public:
     UBXScanner();
-    unsigned char *getMessage();
+    unsigned char* getMessage();
     unsigned int getMessageLength();
     unsigned int getPosition();
     void reset();
@@ -86,15 +86,15 @@ public:
 class UBXParser
 {
 private:
-    UBXScanner *scanner;    // pointer to the scanner, which finds the messages in the data stream
-    unsigned char *message; // pointer to the scanner's message buffer
+    UBXScanner* scanner;    // pointer to the scanner, which finds the messages in the data stream
+    unsigned char* message; // pointer to the scanner's message buffer
     unsigned int length;    // current message length
     unsigned int position;  // current message end position
 
 public:
-    UBXParser(UBXScanner *ubxsc);
+    UBXParser(UBXScanner* ubxsc);
     void updateMessageData();
-    int decodeMessage(double *array, std::map<std::string, int> &keys);
+    int decodeMessage(double* array, std::map<std::string, int>& keys);
     int checkMessage();
 };
 
@@ -141,25 +141,25 @@ private:
     };
 
     std::string spi_device_name;
-    UBXScanner *scanner;
-    UBXParser *parser;
+    UBXScanner* scanner;
+    UBXParser* parser;
 
 public:
     Ublox(std::string name = "/dev/spidev0.0");
-    Ublox(std::string name, UBXScanner *scan, UBXParser *pars);
+    Ublox(std::string name, UBXScanner* scan, UBXParser* pars);
     int enableNAV_POSLLH();
     int enableNAV_STATUS();
     int enableNAV_VELNED();
     int disable_others();
     int testConnection();
     void configureSolutionRate(std::uint16_t meas_rate,
-                               std::uint16_t nav_rate = 1,
-                               std::uint16_t timeref = 0);
-    int decodeMessages(double *array, std::map<std::string, int> &keys);
-    int decodeSingleMessage(message_t msg, double *position_data, std::map<std::string, int> &keys);
+        std::uint16_t nav_rate = 1,
+        std::uint16_t timeref = 0);
+    int decodeMessages(double* array, std::map<std::string, int>& keys);
+    int decodeSingleMessage(message_t msg, double* position_data, std::map<std::string, int>& keys);
 
 private:
-    int _sendMessage(std::uint8_t msg_class, std::uint8_t msg_id, void *msg, std::uint16_t size);
-    int _spliceMemory(unsigned char *dest, const void *const src, size_t size, int dest_offset = 0);
+    int _sendMessage(std::uint8_t msg_class, std::uint8_t msg_id, void* msg, std::uint16_t size);
+    int _spliceMemory(unsigned char* dest, const void* const src, size_t size, int dest_offset = 0);
     CheckSum _calculateCheckSum(unsigned char message[], std::size_t size);
 }; // end of ublox class def

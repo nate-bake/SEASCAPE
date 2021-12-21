@@ -8,15 +8,15 @@ python-based educational autopilot system
 - replaced individual vectors with one large vector in shared memory that can be accessed by both C++ and Python.
 - started a config.json file to define the indices for the shared memory.
 - created Makefile for compiling.
+- added MPU9250 to imu loop, allowing data from both IMUs to be available in the y vector.
 
 ## TODO
 
-- add IMU calibration as a separate routine and configure air.cpp to reference the calibration profile and recommend a new calibration if out of date.
-- add support for MPU and look into generalizing IMU reads.
+- add IMU calibration as a separate routine and configure air.cpp to use the profile and recommend new calibration if outdated.
 - add our own estimator and controller to air.cpp and figure out how we want to log results.
 - create a test.py skeleton and sync it with air.cpp using a launch script.
 - figure out better ways to protect our code from goons.
-- add more customization options to config file.
+- add more customization options to config file, such as ability to select IMU or which estimator to use.
 - maybe break up air.cpp into multiple files to allow more flexibility?
 - add some preflight checks and warn the user if anything in the config file might be a problem.
 

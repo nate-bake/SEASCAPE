@@ -14,6 +14,7 @@
 
 #include "Navio2/C++/Ublox.h"
 #include "Navio2/C++/LSM9DS1.h"
+#include "Navio2/C++/MPU9250.h"
 #include "Navio2/C++/MS5611.h"
 #include "Navio2/C++/ADC_Navio2.h"
 #include "Navio2/C++/RCInput_Navio2.h"
