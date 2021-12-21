@@ -24,7 +24,7 @@ python-based educational autopilot system
 ## SETUP / DEPENDENCIES
 
 - install JSONCPP on Navio so that C++ can read config file. `sudo apt-get install libjsoncpp-dev`
-- install Python IPC package on Navio so that Python side can access the shared memory vector. `pip3 install sysv_ipc`
+- install Python IPC package on Navio so Python can access shared memory. `pip3 install sysv_ipc`
 - i modified some of the files in the Navio2 folder to get the GPS to work properly, so we can no longer include it as a submodule from Emlid.
 
 ## COMPILE / RUN
