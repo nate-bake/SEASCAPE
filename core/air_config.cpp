@@ -50,20 +50,19 @@ air_config::air_config(std::string filepath) {
     AUTO_MODE_MIN = threads["RCIN_SERVO"]["FLIGHT_MODES"]["AUTO_RANGE"]["LOW"].asInt();
     AUTO_MODE_MAX = threads["RCIN_SERVO"]["FLIGHT_MODES"]["AUTO_RANGE"]["HIGH"].asInt();
 
-    int i = 1; // LEAVE INDEX 0 EMPTY FOR KEY NOT FOUND DEFAULT
+    int i = 1; // LEAVE INDEX 0 EMPTY FOR DEFAULT WHEN KEY NOT FOUND
     auto vectors = cfg["VECTORS"];
 
     for (int v = 0; v < vectors.size(); v++) {
         auto vector = vectors[v];
-        if (vector["ENABLED"].asBool()) {
-            auto ks = vector["KEYS"];
-            for (int k = 0; k < ks.size(); k++) {
-                if (!keys.insert(std::pair<std::string, int>(ks[k].asString(), i)).second) {
-                    printf("DUPLICATE KEYS FOUND IN CONFIG FILE.\n");
-                    std::exit(-1);
-                }
-                i++;
+        auto ks = vector["KEYS"];
+        for (int k = 0; k < ks.size(); k++) {
+            std::string key = vector["ID"].asString() + "_" + ks[k].asString();
+            if (!keys.insert(std::pair<std::string, int>(key, i)).second) {
+                printf("DUPLICATE KEYS FOUND IN CONFIG FILE.\n");
+                std::exit(-1);
             }
+            i++;
         }
     }
 }

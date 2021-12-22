@@ -20,7 +20,6 @@ float clip_pwm(const air_config* cfg, int pwm) {
 Ublox* initialize_gps(int milliseconds) {
     Ublox* gps = new Ublox();
     if (gps->testConnection()) {
-        printf("Ublox test OK\n");
         gps->configureSolutionRate(milliseconds);
     } else {
         printf("Ublox initialization FAILED\n");
@@ -80,7 +79,7 @@ RCOutput* initialize_pwm(int freq) {
 
 int read_imu(InertialSensor* imu, double* array, std::map<std::string, int>& keys, int index = 1) {
     imu->update();
-    std::string prefix = "IMU_" + std::to_string(index);
+    std::string prefix = "y_IMU_" + std::to_string(index);
     imu->read_accelerometer(array + keys[prefix + "_AX"], array + keys[prefix + "_AY"], array + keys[prefix + "_AZ"]);
     imu->read_gyroscope(array + keys[prefix + "_GYRO_P"], array + keys[prefix + "_GYRO_Q"], array + keys[prefix + "_GYRO_Q"]);
     imu->read_magnetometer(array + keys[prefix + "_MAG_X"], array + keys[prefix + "_MAG_Y"], array + keys[prefix + "_MAG_Z"]);
@@ -88,59 +87,64 @@ int read_imu(InertialSensor* imu, double* array, std::map<std::string, int>& key
 }
 
 int read_adc(ADC* adc, double* array, std::map<std::string, int>& keys) {
-    array[keys["ADC_A0"]] = ((double)(adc->read(0))) / 1000;
-    array[keys["ADC_A1"]] = ((double)(adc->read(1))) / 1000;
-    array[keys["ADC_A2"]] = ((double)(adc->read(2))) / 1000;
-    array[keys["ADC_A3"]] = ((double)(adc->read(3))) / 1000;
-    array[keys["ADC_A4"]] = ((double)(adc->read(4))) / 1000;
-    array[keys["ADC_A5"]] = ((double)(adc->read(5))) / 1000;
+    array[keys["y_ADC_A0"]] = ((double)(adc->read(0))) / 1000;
+    array[keys["y_ADC_A1"]] = ((double)(adc->read(1))) / 1000;
+    array[keys["y_ADC_A2"]] = ((double)(adc->read(2))) / 1000;
+    array[keys["y_ADC_A3"]] = ((double)(adc->read(3))) / 1000;
+    array[keys["y_ADC_A4"]] = ((double)(adc->read(4))) / 1000;
+    array[keys["y_ADC_A5"]] = ((double)(adc->read(5))) / 1000;
     uint64_t us = current_time_microseconds();
     double now = ((double)(us % 1000000000000)) / 1000000;
-    if (array[keys["ADC_TIME"]] != 0.) {
-        array[keys["ADC_CONSUMED"]] += array[keys["ADC_A3"]] * 1000 * (now - array[keys["ADC_TIME"]]) / 3600;
+    if (array[keys["y_ADC_TIME"]] != 0.) {
+        array[keys["y_ADC_CONSUMED"]] += array[keys["y_ADC_A3"]] * 1000 * (now - array[keys["y_ADC_TIME"]]) / 3600;
     }
-    array[keys["ADC_TIME"]] = now;
+    array[keys["y_ADC_TIME"]] = now;
     return 0;
 }
 
 int read_rcin(RCInput* rcin, double* array, std::map<std::string, int>& keys) {
     for (int i = 0; i < 14; i++) {
-        array[keys["RCIN_" + std::to_string(i)]] = (double)(rcin->read(i));
+        array[keys["rcin_CHANNEL_" + std::to_string(i)]] = (double)(rcin->read(i));
     }
     return 0;
 }
 
 int write_servo(RCOutput* pwm, double* array, const air_config* cfg) {
     std::map<std::string, int> keys = cfg->keys;
-    if (cfg->MANUAL_MODE_MIN <= array[keys["RCIN_" + std::to_string(cfg->FLIGHT_MODE_CHANNEL)]] <= cfg->MANUAL_MODE_MAX) {
-        array[keys["MODE_FLAG"]] = 0; // mode_flag: manual
+    std::string controller_vec = "controller_" + std::to_string(cfg->SERVO_CONTROLLER) + "_";
+    if (cfg->MANUAL_MODE_MIN <= array[keys["rcin_CHANNEL_" + std::to_string(cfg->FLIGHT_MODE_CHANNEL)]] <= cfg->MANUAL_MODE_MAX) {
+        array[keys["servo_MODE_FLAG"]] = 0; // mode_flag: manual
         for (int i = 0; i < 14; i++) {
-            pwm->set_duty_cycle(i, clip_pwm(cfg, (int)array[keys["RCIN_" + std::to_string(i)]]));
-            array[keys["SERVO_" + std::to_string(i)]] = array[keys["RCIN_" + std::to_string(i)]];
+            float new_pwm = clip_pwm(cfg, (int)array[keys["rcin_CHANNEL_" + std::to_string(i)]]);
+            pwm->set_duty_cycle(i, new_pwm);
+            array[keys["servo_CHANNEL_" + std::to_string(i)]] = (double)new_pwm;
         }
-    } else if (cfg->AUTO_MODE_MIN <= array[keys["RCIN_" + std::to_string(cfg->FLIGHT_MODE_CHANNEL)]] <= cfg->AUTO_MODE_MAX) {
-        array[keys["MODE_FLAG"]] = 1; //mode_flag: auto
+    } else if (cfg->AUTO_MODE_MIN <= array[keys["rcin_CHANNEL_" + std::to_string(cfg->FLIGHT_MODE_CHANNEL)]] <= cfg->AUTO_MODE_MAX) {
+        array[keys["servo_MODE_FLAG"]] = 1; //mode_flag: auto
         for (int i = 0; i < 14; i++) {
-            pwm->set_duty_cycle(i, clip_pwm(cfg, (int)array[keys["CONTROLLER_" + std::to_string(i)]]));
-            array[keys["SERVO_" + std::to_string(i)]] = array[keys["CONTROLLER_" + std::to_string(i)]];
+            float new_pwm = clip_pwm(cfg, (int)array[keys[controller_vec + "CHANNEL_" + std::to_string(i)]]);
+            pwm->set_duty_cycle(i, new_pwm);
+            array[keys["servo_CHANNEL_" + std::to_string(i)]] = (double)new_pwm;
         }
-    } else if (cfg->SEMI_MODE_MIN <= array[keys["RCIN_" + std::to_string(cfg->FLIGHT_MODE_CHANNEL)]] <= cfg->SEMI_MODE_MAX) {
-        array[keys["MODE_FLAG"]] = 2; //mode_flag: semi-auto
+    } else if (cfg->SEMI_MODE_MIN <= array[keys["rcin_CHANNEL_" + std::to_string(cfg->FLIGHT_MODE_CHANNEL)]] <= cfg->SEMI_MODE_MAX) {
+        array[keys["servo_MODE_FLAG"]] = 2; //mode_flag: semi-auto
         bool man_override = false;
-        double el = array[keys["RCIN_" + std::to_string(cfg->ELEVATOR_CHANNEL)]];
-        double al = array[keys["RCIN_" + std::to_string(cfg->AILERON_CHANNEL)]];
+        double el = array[keys["rcin_CHANNEL_" + std::to_string(cfg->ELEVATOR_CHANNEL)]];
+        double al = array[keys["rcin_CHANNEL_" + std::to_string(cfg->AILERON_CHANNEL)]];
         if ((!(std::abs(1500 - el) > cfg->SEMI_DEADZONE)) || (!(std::abs(1500 - al) > cfg->SEMI_DEADZONE))) {
             man_override = true;
         }
         if (man_override) {
             for (int i = 0; i < 14; i++) {
-                pwm->set_duty_cycle(i, clip_pwm(cfg, (int)array[keys["RCIN_" + std::to_string(i)]]));
-                array[keys["SERVO_" + std::to_string(i)]] = array[keys["RCIN_" + std::to_string(i)]];
+                float new_pwm = clip_pwm(cfg, (int)array[keys["rcin_CHANNEL_" + std::to_string(i)]]);
+                pwm->set_duty_cycle(i, new_pwm);
+                array[keys["servo_CHANNEL_" + std::to_string(i)]] = (double)new_pwm;
             }
         } else {
             for (int i = 0; i < 14; i++) {
-                pwm->set_duty_cycle(i, clip_pwm(cfg, (int)array[keys["CONTROLLER_" + std::to_string(i)]]));
-                array[keys["SERVO_" + std::to_string(i)]] = array[keys["CONTROLLER_" + std::to_string(i)]];
+                float new_pwm = clip_pwm(cfg, (int)array[keys[controller_vec + "CHANNEL_" + std::to_string(i)]]);
+                pwm->set_duty_cycle(i, new_pwm);
+                array[keys["servo_CHANNEL_" + std::to_string(i)]] = (double)new_pwm;
             }
         }
     }
@@ -156,12 +160,12 @@ void* gps_baro_loop(void* arguments) {
     Ublox* gps;
     MS5611* barometer;
     if (cfg->GPS_ENABLED) {
-        gps = initialize_gps(200);
         printf("Initializing GPS.\n");
+        gps = initialize_gps(200);
     }
     if (cfg->MS5611_ENABLED) {
-        barometer = initialize_baro();
         printf("Initializing Barometer. [MS5611]\n");
+        barometer = initialize_baro();
     }
     usleep(500000);
     int max_sleep = hertz_to_microseconds(cfg->GPS_LOOP_RATE);
@@ -172,11 +176,11 @@ void* gps_baro_loop(void* arguments) {
             if (cfg->MS5611_ENABLED) {
                 barometer->readPressure();
                 barometer->calculatePressureAndTemperature();
-                array[keys["BARO_PRES"]] = barometer->getPressure();
-                if (array[keys["BARO_INIT"]] == 0) {
-                    array[keys["BARO_INIT"]] = array[keys["BARO_PRES"]];
+                array[keys["y_BARO_PRES"]] = barometer->getPressure();
+                if (array[keys["y_BARO_INIT"]] == 0) {
+                    array[keys["y_BARO_INIT"]] = array[keys["y_BARO_PRES"]];
                 }
-                array[keys["GPS_UPDATES"]]++;
+                array[keys["y_GPS_UPDATES"]]++;
                 barometer->refreshPressure();
             }
             now = current_time_microseconds();
@@ -184,9 +188,9 @@ void* gps_baro_loop(void* arguments) {
         } else if (!cfg->GPS_ENABLED && cfg->MS5611_ENABLED) {
             barometer->readPressure();
             barometer->calculatePressureAndTemperature();
-            array[keys["BARO_PRES"]] = barometer->getPressure();
-            if (array[keys["BARO_INIT"]] == 0) {
-                array[keys["BARO_INIT"]] = array[keys["BARO_PRES"]];
+            array[keys["y_BARO_PRES"]] = barometer->getPressure();
+            if (array[keys["y_BARO_INIT"]] == 0) {
+                array[keys["y_BARO_INIT"]] = array[keys["y_BARO_PRES"]];
             }
             barometer->refreshPressure();
             now = current_time_microseconds();
@@ -207,16 +211,16 @@ void* imu_loop(void* arguments) {
     // NEED TO LOAD CALIBRATION PROFILES FOR IMUs
     // WILL PROBABLY BE EASIER IF WE MAKE AIR.CPP MORE MODULAR AND OBJECT-ORIENTED
     if (cfg->LSM_ENABLED) {
-        lsm = initialize_imu("LSM");
         printf("Initializing IMU. [LSM9DS1]\n");
+        lsm = initialize_imu("LSM");
     }
     if (cfg->MPU_ENABLED) {
-        mpu = initialize_imu("MPU");
         printf("Initializing IMU. [MPU9250]\n");
+        mpu = initialize_imu("MPU");
     }
     if (cfg->ADC_ENABLED) {
-        adc = initialize_adc();
         printf("Initializing ADC.\n");
+        adc = initialize_adc();
     }
     usleep(500000);
     int max_sleep = hertz_to_microseconds(cfg->IMU_LOOP_RATE);
@@ -238,7 +242,7 @@ void* imu_loop(void* arguments) {
             read_imu(mpu, array, keys, index);
         }
         if (cfg->LSM_ENABLED || cfg->MPU_ENABLED) {
-            array[keys["IMU_UPDATES"]]++;
+            array[keys["y_IMU_UPDATES"]]++;
         }
         if (cfg->ADC_ENABLED) {
             read_adc(adc, array, keys);
@@ -255,11 +259,11 @@ void* servo_loop(void* arguments) {
     const air_config* cfg = args->cfg;
     std::map<std::string, int> keys = cfg->keys;
     usleep(200000);
-    printf("Initializing RCIN.\n");
     usleep(50000);
-    printf("Initializing Servos.\n");
     RCInput* rcin = new RCInput_Navio2();
+    printf("Initializing RCIN.\n");
     rcin->initialize();
+    printf("Initializing Servos.\n");
     RCOutput* pwm = initialize_pwm(cfg->PWM_FREQUENCY);
     if (!pwm) {
         printf("Failed to initialize servo-rail PWM. Could be lacking root privilege.\n");
@@ -311,13 +315,13 @@ void* telemetry_loop(void* arguments) {
         int sent0 = port->write_message(msg0);
         // these values i am sending may not be correct but i just want to verify that mission planner displays them.
         mavlink_message_t msg30;
-        int packed30 = mavlink_msg_attitude_pack(1, 255, &msg30, t, (float)array[keys["IMU_1_AX"]] / 20 * M_PI, (float)array[keys["IMU_1_AY"]] / 20 * M_PI, 0, 0, 0, 0);
+        int packed30 = mavlink_msg_attitude_pack(1, 255, &msg30, t, (float)array[keys["y_IMU_1_AX"]] / 20 * M_PI, (float)array[keys["y_IMU_1_AY"]] / 20 * M_PI, 0, 0, 0, 0);
         int sent30 = port->write_message(msg30);
         mavlink_message_t msg33;
-        int packed33 = mavlink_msg_global_position_int_pack(1, 255, &msg33, t, 0, 0, 0, -1 * array[keys["XH_Z"]], array[keys["GPS_VEL_N"]], array[keys["GPS_VEL_E"]], array[keys["GPS_VEL_D"]], 0);
+        int packed33 = mavlink_msg_global_position_int_pack(1, 255, &msg33, t, 0, 0, 0, -1 * array[keys["xh_0_Z"]], array[keys["y_GPS_VEL_N"]], array[keys["y_GPS_VEL_E"]], array[keys["y_GPS_VEL_D"]], 0);
         int sent33 = port->write_message(msg33);
         mavlink_message_t msg24;
-        int packed24 = mavlink_msg_gps_raw_int_pack(1, 255, &msg24, t, array[keys["GPS_STATUS"]], (int)array[keys["GPS_POSN_LAT"]], (int)array[keys["GPS_POSN_LON"]], (int)array[keys["GPS_POSN_ALT"]], 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        int packed24 = mavlink_msg_gps_raw_int_pack(1, 255, &msg24, t, array[keys["y_GPS_STATUS"]], (int)array[keys["y_GPS_POSN_LAT"]], (int)array[keys["y_GPS_POSN_LON"]], (int)array[keys["y_GPS_POSN_ALT"]], 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
         int sent24 = port->write_message(msg24);
         // SYSTEM STATUS MSG #1 for battery
         // HUD MSG #74 for heading and speed
@@ -339,12 +343,12 @@ void* estimation_loop(void* arguments) {
     uint64_t start_time, now;
     while (true) {
         start_time = current_time_microseconds();
-        if (imu == array[keys["IMU_UPDATES"]]) {
+        if (imu == array[keys["y_IMU_UPDATES"]]) {
             continue;
         }
-        imu = array[keys["IMU_UPDATES"]];
-        if (gps != array[keys["GPS_UPDATES"]]) {
-            gps = array[keys["GPS_UPDATES"]];
+        imu = array[keys["y_IMU_UPDATES"]];
+        if (gps != array[keys["y_GPS_UPDATES"]]) {
+            gps = array[keys["y_GPS_UPDATES"]];
             // ESTIMATION WITH NEW GPS MEASUREMENT HERE
         } else {
             // ESTIMATION WITHOUT NEW GPS MEASUREMENT HERE
@@ -361,22 +365,23 @@ void* control_loop(void* arguments) {
     double* array = args->array;
     const air_config* cfg = args->cfg;
     std::map<std::string, int> keys = cfg->keys;
+    std::string xh_vec = "xh_" + std::to_string(cfg->CONTROLLER_XH) + "_";
     int updates = 0;
     int max_sleep = hertz_to_microseconds(cfg->CONTROL_LOOP_RATE);
     uint64_t start_time, now;
     while (true) {
         start_time = current_time_microseconds();
-        if (updates == array[keys["XH_UPDATES"]]) {
+        if (updates == array[keys[xh_vec + "UPDATES"]]) {
             continue;
         }
-        updates = array[keys["XH_UPDATES"]];
+        updates = array[keys[xh_vec + "UPDATES"]];
         // manual passthrough function
-        array[keys["CONTROLLER_0"]] = array[keys["RCIN_0"]];
-        array[keys["CONTROLLER_1"]] = array[keys["RCIN_1"]];
-        array[keys["CONTROLLER_2"]] = array[keys["RCIN_2"]];
-        array[keys["CONTROLLER_3"]] = array[keys["RCIN_3"]];
-        array[keys["CONTROLLER_4"]] = array[keys["RCIN_4"]];
-        array[keys["CONTROLLER_5"]] = array[keys["RCIN_5"]];
+        array[keys["controller_0_CHANNEL_0"]] = array[keys["rcin_CHANNEL_0"]];
+        array[keys["controller_0_CHANNEL_1"]] = array[keys["rcin_CHANNEL_1"]];
+        array[keys["controller_0_CHANNEL_2"]] = array[keys["rcin_CHANNEL_2"]];
+        array[keys["controller_0_CHANNEL_3"]] = array[keys["rcin_CHANNEL_3"]];
+        array[keys["controller_0_CHANNEL_4"]] = array[keys["rcin_CHANNEL_4"]];
+        array[keys["controller_0_CHANNEL_5"]] = array[keys["rcin_CHANNEL_5"]];
         now = current_time_microseconds();
         int sleep_time = (int)(max_sleep - (now - start_time));
         usleep(std::max(sleep_time, 0));

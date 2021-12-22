@@ -31,7 +31,7 @@
 #include <map>
 
 #define GETEKYDIR ("core/air.h")
-#define PROJECTID (2333)
+#define PROJECTID '~'
 #define SHMSIZE (4096)
 
 #include "air_config.h"

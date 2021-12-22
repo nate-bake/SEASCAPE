@@ -58,7 +58,7 @@ int UBXScanner::update(unsigned char data) {
     if (state != Done)
         message[position++] = data;
 
-    switch (state)     {
+    switch (state) {
     case Sync1:
         if (data == 0xb5)
             state = Sync2;
@@ -154,7 +154,7 @@ int UBXParser::decodeMessage(double* array, std::map<std::string, int>& keys) {
 
     // Count the checksum
 
-    for (unsigned int i = 2; i < (length - 2); i++)     {
+    for (unsigned int i = 2; i < (length - 2); i++) {
         CK_A += *(message + pos + i);
         CK_B += CK_A;
     }
@@ -176,7 +176,7 @@ int UBXParser::decodeMessage(double* array, std::map<std::string, int>& keys) {
     flag = id; // will return message id, if we got the info decoded
     // return id;
 
-    switch (id)     {
+    switch (id) {
     case 258:
         // ID for Nav-Posllh messages is 0x0102 == 258
         // In this example we extract 7 variables - longitude, latitude,
@@ -194,11 +194,11 @@ int UBXParser::decodeMessage(double* array, std::map<std::string, int>& keys) {
         //iTOW
         // data.push_back ((unsigned)((*(message+pos+9) << 24) | (*(message+pos+8) << 16) | (*(message+pos+7) << 8) | (*(message+pos+6))));
         //Longitude
-        array[keys["GPS_POSN_LON"]] = (*(message + pos + 13) << 24) | (*(message + pos + 12) << 16) | (*(message + pos + 11) << 8) | (*(message + pos + 10));
+        array[keys["y_GPS_POSN_LON"]] = (*(message + pos + 13) << 24) | (*(message + pos + 12) << 16) | (*(message + pos + 11) << 8) | (*(message + pos + 10));
         //Latitude
-        array[keys["GPS_POSN_LAT"]] = (*(message + pos + 17) << 24) | (*(message + pos + 16) << 16) | (*(message + pos + 15) << 8) | (*(message + pos + 14));
+        array[keys["y_GPS_POSN_LAT"]] = (*(message + pos + 17) << 24) | (*(message + pos + 16) << 16) | (*(message + pos + 15) << 8) | (*(message + pos + 14));
         //Height above Ellipsoid
-        array[keys["GPS_POSN_ALT"]] = (*(message + pos + 21) << 24) | (*(message + pos + 20) << 16) | (*(message + pos + 19) << 8) | (*(message + pos + 18));
+        array[keys["y_GPS_POSN_ALT"]] = (*(message + pos + 21) << 24) | (*(message + pos + 20) << 16) | (*(message + pos + 19) << 8) | (*(message + pos + 18));
         //Height above mean sea level
         // data.push_back ((*(message+pos+25) << 24) | (*(message+pos+24) << 16) | (*(message+pos+23) << 8) | (*(message+pos+22)));
         //Horizontal Accuracy Estateimate
@@ -223,15 +223,15 @@ int UBXParser::decodeMessage(double* array, std::map<std::string, int>& keys) {
         // flags, which contain gpsFixOk
         // data.push_back (*(message+pos+11));
         // y[GPS_NUM_SATS] = (*(message+pos+11));
-        array[keys["GPS_STATUS"]] = (int)(*(message + pos + 10));
+        array[keys["y_GPS_STATUS"]] = (int)(*(message + pos + 10));
 
         break;
 
     case 274:
         // velned
-        array[keys["GPS_VEL_N"]] = (*(message + pos + 13) << 24) | (*(message + pos + 12) << 16) | (*(message + pos + 11) << 8) | (*(message + pos + 10));
-        array[keys["GPS_VEL_E"]] = (*(message + pos + 17) << 24) | (*(message + pos + 16) << 16) | (*(message + pos + 15) << 8) | (*(message + pos + 14));
-        array[keys["GPS_VEL_D"]] = (*(message + pos + 21) << 24) | (*(message + pos + 20) << 16) | (*(message + pos + 19) << 8) | (*(message + pos + 18));
+        array[keys["y_GPS_VEL_N"]] = (*(message + pos + 13) << 24) | (*(message + pos + 12) << 16) | (*(message + pos + 11) << 8) | (*(message + pos + 10));
+        array[keys["y_GPS_VEL_E"]] = (*(message + pos + 17) << 24) | (*(message + pos + 16) << 16) | (*(message + pos + 15) << 8) | (*(message + pos + 14));
+        array[keys["y_GPS_VEL_D"]] = (*(message + pos + 21) << 24) | (*(message + pos + 20) << 16) | (*(message + pos + 19) << 8) | (*(message + pos + 18));
         break;
 
     default:
@@ -268,7 +268,7 @@ int UBXParser::checkMessage() {
 
     // Count the checksum
 
-    for (unsigned int i = 2; i < (length - 2); i++)     {
+    for (unsigned int i = 2; i < (length - 2); i++) {
         CK_A += *(message + pos + i);
         CK_B += CK_A;
     }
@@ -358,15 +358,15 @@ int Ublox::testConnection() {
 
     // we do this, so that at least one ubx message is enabled
 
-    if (enableNAV_POSLLH() < 0)     {
+    if (enableNAV_POSLLH() < 0) {
         std::cerr << "Could not configure ublox over SPI\n";
     }
 
-    if (enableNAV_STATUS() < 0)     {
+    if (enableNAV_STATUS() < 0) {
         std::cerr << "Could not configure ublox over SPI\n";
     }
 
-    if (enableNAV_VELNED() < 0)     {
+    if (enableNAV_VELNED() < 0) {
         std::cerr << "Could not configure ublox over SPI\n";
     }
     // if (disable_others()<0)
@@ -374,7 +374,7 @@ int Ublox::testConnection() {
     //     std::cerr << "Could not configure ublox over SPI\n";
     // }
 
-    while (count < UBX_BUFFER_LENGTH / 2)     {
+    while (count < UBX_BUFFER_LENGTH / 2) {
         // From now on, we will send zeroes to the receiver, which it will ignore
         // However, we are simultaneously getting useful information from it
         SPIdev::transfer(spi_device_name.c_str(), &to_gps_data, &from_gps_data, 1, 200000);
@@ -382,12 +382,12 @@ int Ublox::testConnection() {
         // Scanner checks the message structure with every byte received
         status = scanner->update(from_gps_data);
 
-        if (status == UBXScanner::Done)         {
+        if (status == UBXScanner::Done) {
             // Once we have a full message we decode it and reset the scanner, making it look for another message
             // in the data stream, coming over SPI
 
             // If we find at least one valid message in the buffer, we consider connection to be established
-            if (parser->checkMessage() == 1)             {
+            if (parser->checkMessage() == 1) {
                 scanner->reset();
                 return 1;
             }
@@ -440,7 +440,7 @@ Ublox::CheckSum Ublox::_calculateCheckSum(unsigned char* message, std::size_t si
     CheckSum checkSum;
     checkSum.CK_A = checkSum.CK_B = 0;
 
-    for (int i = PREAMBLE_OFFSET; i < size; i++)     {
+    for (int i = PREAMBLE_OFFSET; i < size; i++) {
         checkSum.CK_A += message[i];
         checkSum.CK_B += checkSum.CK_A;
     }
@@ -469,7 +469,7 @@ int Ublox::decodeMessages(double* array, std::map<std::string, int>& keys) {
     // }
 
     // while (true) {
-    while (count < 45)     {
+    while (count < 45) {
         // std::cout << count << std::endl;
         // From now on, we will send zeroes to the receiver, which it will ignore
         // However, we are simultaneously getting useful information from it
@@ -480,12 +480,12 @@ int Ublox::decodeMessages(double* array, std::map<std::string, int>& keys) {
         scan_status = scanner->update(from_gps_data);
         // if (!(scan_status == UBXScanner::Sync1 || scan_status == UBXScanner::Sync2)) return 0;
         // std::cout << scanner->getMessageLength() << std::endl;
-        if (scan_status == UBXScanner::Done)         {
+        if (scan_status == UBXScanner::Done) {
             // Once we have a full message we decode it and reset the scanner, making it look for another message
             // in the data stream, coming over SPI
             // if (parser->decodeMessage(position_data) > 0)
             int id = parser->decodeMessage(array, keys);
-            switch (id)             {
+            switch (id) {
             case 258:
                 posllh = true;
                 break;
@@ -499,7 +499,7 @@ int Ublox::decodeMessages(double* array, std::map<std::string, int>& keys) {
                 break;
             }
             // std::cout << count << std::endl;
-            if (posllh && status && velned)             {
+            if (posllh && status && velned) {
                 // BAROMETER STUFF HERE ??
                 // position_data[0]++;
                 return 1;
@@ -574,7 +574,7 @@ int Ublox::decodeMessages(double* array, std::map<std::string, int>& keys) {
 }
 
 int Ublox::decodeSingleMessage(message_t msg, double* position_data, std::map<std::string, int>& keys) {
-    switch (msg)     {
+    switch (msg) {
     case NAV_POSLLH:
     {
         uint16_t id = 0x0102;
@@ -592,7 +592,7 @@ int Ublox::decodeSingleMessage(message_t msg, double* position_data, std::map<st
             // Scanner checks the message structure with every byte received
             status = scanner->update(from_gps_data);
 
-            if (status == UBXScanner::Done)             {
+            if (status == UBXScanner::Done) {
                 // Once we have a full message we decode it and reset the scanner, making it look for another message
                 // in the data stream, coming over SPI
                 // std::cout << "done" << std::endl;
@@ -646,7 +646,7 @@ int Ublox::decodeSingleMessage(message_t msg, double* position_data, std::map<st
             // scanner->reset();
             status = scanner->update(from_gps_data);
 
-            if (status == UBXScanner::Done)             {
+            if (status == UBXScanner::Done) {
                 // Once we have a full message we decode it and reset the scanner, making it look for another message
                 // in the data stream, coming over SPI
                 if (parser->decodeMessage(position_data, keys) == id)

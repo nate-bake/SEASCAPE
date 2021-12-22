@@ -13,15 +13,17 @@ python-based educational autopilot system
 - added some customization options to config file. not sure if this is the best solution though.
 - created python estimator/controller skeletons and connected them to air.cpp using a launch script.
 - moved all sensitive code into 'core/' folder, added config validator, limited write capabilities on python side.
+- implemented xh/controller vector choices in config, and tried to simplify reads on python side.
 
 ## TODO
 
-- add IMU calibration as a separate routine and configure air.cpp to use the profile and recommend new calibration if outdated.
-- add our own estimator and controller to air.cpp and figure out how we want to log results.
+- add IMU calibration as a separate routine and configure air.cpp to use the profile.
+- add our own estimator and controller to air.cpp.
 - maybe break up air.cpp into multiple files to allow more flexibility
 - test servo loop cuz idk if the rcin and pwm scales are the same.
-- should telemetry be on the c++ or python side?
-- actually implement the xh/controller vector choices in config, and maybe find a way to simplify reads on python side.
+- update telemetry thread and maybe add some config settings for it.
+- add config setting to enable calibrated IMU sensor reads.
+- add logger. synchronized logs probably not feasible. maybe just read/write vectors in a separate thread.
 
 ## SETUP / DEPENDENCIES
 

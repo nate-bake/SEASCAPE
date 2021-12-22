@@ -1,21 +1,21 @@
 {
   "THREADS": {
     "ESTIMATOR_0": {
-      "DESCRIPTION": "Built-in estimator implemented in C++. Updates values with key prefix XH_0_.",
+      "DESCRIPTION": "Built-in estimator implemented in C++. Updates xh_0 vector.",
       "ENABLED": true,
       "RATE": 150,
       "LOG_XH_DATA": true
     },
 
     "ESTIMATOR_1": {
-      "DESCRIPTION": "User-defined estimator implemented in Python. Updates values with key prefix XH_1_.",
+      "DESCRIPTION": "User-defined estimator implemented in Python. Updates xh_1 vector.",
       "ENABLED": true,
       "RATE": 150,
       "LOG_XH_DATA": true
     },
 
     "CONTROLLER_0": {
-      "DESCRIPTION": "Built-in controller implemented in C++. Updates values with key prefix CONTROLLER_0_",
+      "DESCRIPTION": "Built-in controller implemented in C++. Updates controller_0 vector.",
       "ENABLED": true,
       "RATE": 50,
       "XH_VECTOR_TO_USE": 0,
@@ -23,7 +23,7 @@
     },
 
     "CONTROLLER_1": {
-      "DESCRIPTION": "User-defined controller implemented in Python. Updates values with key prefix CONTROLLER_1_",
+      "DESCRIPTION": "User-defined controller implemented in Python. Updates controller_1 vector.",
       "ENABLED": true,
       "RATE": 50,
       "XH_VECTOR_TO_USE": 1,
@@ -31,7 +31,7 @@
     },
 
     "IMU_ADC": {
-      "DESCRIPTION": "Handles sensor reads from IMUs and ADC.",
+      "DESCRIPTION": "Handles sensor reads from IMUs and ADC. Updates y vector.",
       "ENABLED": true,
       "RATE": 150,
       "USE_LSM9DS1": true,
@@ -41,7 +41,7 @@
     },
 
     "GPS_BAROMETER": {
-      "DESCRIPTION": "Handles sensor reads from the connected GPS and onboard barometer.",
+      "DESCRIPTION": "Handles sensor reads from the connected GPS and onboard barometer. Updates y vector.",
       "ENABLED": true,
       "RATE": 5,
       "USE_GPS": true,
@@ -49,7 +49,7 @@
     },
 
     "RCIN_SERVO": {
-      "DESCRIPTION": "Handles reads from RC transmitter and sets servo-rail PWM values.",
+      "DESCRIPTION": "Handles reads from RC transmitter and sets servo-rail PWM values. Updates rcin and servo vectors.",
       "ENABLED": true,
       "RATE": 50,
       "PWM_FREQUENCY": 50,
@@ -83,13 +83,12 @@
     }
   },
 
-  "WARNING": "!!!!!!!!!!!!!!! DO NOT EDIT BELOW THIS POINT UNLESS YOU KNOW WHAT YOU ARE DOING !!!!!!!!!!!!!!!!!!",
+  "WARNING": "!!!!!!!!!!!!!!! DO NOT EDIT BELOW THIS POINT UNLESS YOU REALLY KNOW WHAT YOU ARE DOING !!!!!!!!!!!!!!!!!!",
 
   "VECTORS": [
     {
       "ID": "y",
       "DESCRIPTION": "Holds values from available sensors to be read by estimators.",
-      "ENABLED": true,
       "KEYS": [
         "GPS_UPDATES",
         "IMU_UPDATES",
@@ -133,124 +132,124 @@
     {
       "ID": "xh_0",
       "DESCRIPTION": "Holds the output from the built-in estimator.",
-      "ENABLED": true,
       "KEYS": [
-        "XH_0_UPDATES",
-        "XH_0_X",
-        "XH_0_Y",
-        "XH_0_Z",
-        "XH_0_VT",
-        "XH_0_ALPHA",
-        "XH_0_BETA",
-        "XH_0_PHI",
-        "XH_0_THETA",
-        "XH_0_PSI",
-        "XH_0_P",
-        "XH_0_Q",
-        "XH_0_R"
+        "UPDATES",
+        "X",
+        "Y",
+        "Z",
+        "VT",
+        "ALPHA",
+        "BETA",
+        "PHI",
+        "THETA",
+        "PSI",
+        "P",
+        "Q",
+        "R"
       ]
     },
     {
       "ID": "xh_1",
       "DESCRIPTION": "Holds the output from the user-defined estimator.",
-      "ENABLED": true,
       "KEYS": [
-        "XH_1_UPDATES",
-        "XH_1_X",
-        "XH_1_Y",
-        "XH_1_Z",
-        "XH_1_VT",
-        "XH_1_ALPHA",
-        "XH_1_BETA",
-        "XH_1_PHI",
-        "XH_1_THETA",
-        "XH_1_PSI",
-        "XH_1_P",
-        "XH_1_Q",
-        "XH_1_R"
+        "UPDATES",
+        "X",
+        "Y",
+        "Z",
+        "VT",
+        "ALPHA",
+        "BETA",
+        "PHI",
+        "THETA",
+        "PSI",
+        "P",
+        "Q",
+        "R"
       ]
     },
     {
       "ID": "controller_0",
       "DESCRIPTION": "Holds the output from the built-in controller. If CONTROLLER_VECTOR_TO_USE=0, these values will be used when the aircraft is in AUTO mode.",
-      "ENABLED": true,
       "KEYS": [
-        "CONTROLLER_0_0",
-        "CONTROLLER_0_1",
-        "CONTROLLER_0_2",
-        "CONTROLLER_0_3",
-        "CONTROLLER_0_4",
-        "CONTROLLER_0_5",
-        "CONTROLLER_0_6",
-        "CONTROLLER_0_7",
-        "CONTROLLER_0_8",
-        "CONTROLLER_0_9",
-        "CONTROLLER_0_10",
-        "CONTROLLER_0_11",
-        "CONTROLLER_0_12",
-        "CONTROLLER_0_13"
+        "CHANNEL_0",
+        "CHANNEL_1",
+        "CHANNEL_2",
+        "CHANNEL_3",
+        "CHANNEL_4",
+        "CHANNEL_5",
+        "CHANNEL_6",
+        "CHANNEL_7",
+        "CHANNEL_8",
+        "CHANNEL_9",
+        "CHANNEL_10",
+        "CHANNEL_11",
+        "CHANNEL_12",
+        "CHANNEL_13"
       ]
     },
     {
       "ID": "controller_1",
       "DESCRIPTION": "Holds the output from the user-defined controller. If CONTROLLER_VECTOR_TO_USE=1, these values will be used when the aircraft is in AUTO mode.",
-      "ENABLED": true,
       "KEYS": [
-        "CONTROLLER_1_0",
-        "CONTROLLER_1_1",
-        "CONTROLLER_1_2",
-        "CONTROLLER_1_3",
-        "CONTROLLER_1_4",
-        "CONTROLLER_1_5",
-        "CONTROLLER_1_6",
-        "CONTROLLER_1_7",
-        "CONTROLLER_1_8",
-        "CONTROLLER_1_9",
-        "CONTROLLER_1_10",
-        "CONTROLLER_1_11",
-        "CONTROLLER_1_12",
-        "CONTROLLER_1_13"
+        "CHANNEL_0",
+        "CHANNEL_1",
+        "CHANNEL_2",
+        "CHANNEL_3",
+        "CHANNEL_4",
+        "CHANNEL_5",
+        "CHANNEL_6",
+        "CHANNEL_7",
+        "CHANNEL_8",
+        "CHANNEL_9",
+        "CHANNEL_10",
+        "CHANNEL_11",
+        "CHANNEL_12",
+        "CHANNEL_13"
+      ]
+    },
+    {
+      "ID": "rcin",
+      "DESCRIPTION": "Holds the RCInput values.",
+      "KEYS": [
+        "CHANNEL_0",
+        "CHANNEL_1",
+        "CHANNEL_2",
+        "CHANNEL_3",
+        "CHANNEL_4",
+        "CHANNEL_5",
+        "CHANNEL_6",
+        "CHANNEL_7",
+        "CHANNEL_8",
+        "CHANNEL_9",
+        "CHANNEL_10",
+        "CHANNEL_11",
+        "CHANNEL_12",
+        "CHANNEL_13"
       ]
     },
     {
       "ID": "servo",
-      "DESCRIPTION": "Holds the RCInput values and servo output values.",
-      "ENABLED": true,
+      "DESCRIPTION": "Holds the latest servo-rail output PWM.",
       "KEYS": [
         "MODE_FLAG",
-        "RCIN_0",
-        "RCIN_1",
-        "RCIN_2",
-        "RCIN_3",
-        "RCIN_4",
-        "RCIN_5",
-        "RCIN_6",
-        "RCIN_7",
-        "RCIN_8",
-        "RCIN_9",
-        "RCIN_10",
-        "RCIN_11",
-        "RCIN_12",
-        "RCIN_13",
-        "SERVO_0",
-        "SERVO_1",
-        "SERVO_2",
-        "SERVO_3",
-        "SERVO_4",
-        "SERVO_5",
-        "SERVO_6",
-        "SERVO_7",
-        "SERVO_8",
-        "SERVO_9",
-        "SERVO_10",
-        "SERVO_11",
-        "SERVO_12",
-        "SERVO_13"
+        "CHANNEL_0",
+        "CHANNEL_1",
+        "CHANNEL_2",
+        "CHANNEL_3",
+        "CHANNEL_4",
+        "CHANNEL_5",
+        "CHANNEL_6",
+        "CHANNEL_7",
+        "CHANNEL_8",
+        "CHANNEL_9",
+        "CHANNEL_10",
+        "CHANNEL_11",
+        "CHANNEL_12",
+        "CHANNEL_13"
       ]
     },
     {
       "ID": "cmd",
-      "ENABLED": true,
       "KEYS": ["PSI_C", "H_C"]
     }
   ]

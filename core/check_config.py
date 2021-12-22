@@ -162,14 +162,14 @@ def check_config(filepath):
     keys = {}
 
     for v in vectors:
-        if v["ENABLED"]:
-            ks = v["KEYS"]
-            for k in ks:
-                if k in keys.keys():
-                    print(f"DUPLICATE KEYS '{k}' FOUND IN CONFIG FILE.")
-                    return None, None
-                keys[k] = i
-                i += 1
+        ks = v["KEYS"]
+        for k in ks:
+            k = v["ID"] + "_" + k
+            if k in keys.keys():
+                print(f"DUPLICATE KEYS '{k}' FOUND IN CONFIG FILE.")
+                return None, None
+            keys[k] = i
+            i += 1
 
     return cfg, keys
 
