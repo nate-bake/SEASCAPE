@@ -28,6 +28,7 @@ python-based educational autopilot system
 - install JSONCPP on Navio so that C++ can read config file. `sudo apt-get install libjsoncpp-dev`
 - install Python IPC package on Navio so Python can access shared memory. `sudo pip3 install sysv_ipc`
 - i modified some of the files in the Navio2 folder to get the GPS to work properly, so we can no longer include it as a submodule from Emlid.
+- be sure to actually clone the mavlink submodule thingy. `git submodule update --init`
 
 ## COMPILE / RUN
 
