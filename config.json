@@ -1,16 +1,94 @@
 {
-  "RATES": {
-    "IMU_LOOP": 200,
-    "GPS_BAROMETER_LOOP": 5,
-    "RCIN_SERVO_LOOP": 50,
-    "BUILT-IN_ESTIMATOR": 100,
-    "BUILT-IN_CONTROLLER": 50,
-    "TELEMETRY_LOOP": 1
+  "THREADS": {
+    "ESTIMATOR_0": {
+      "DESCRIPTION": "Built-in estimator implemented in C++. Updates values with key prefix XH_0_.",
+      "ENABLED": true,
+      "RATE": 150,
+      "LOG_XH_DATA": true
+    },
+
+    "ESTIMATOR_1": {
+      "DESCRIPTION": "User-defined estimator implemented in Python. Updates values with key prefix XH_1_.",
+      "ENABLED": true,
+      "RATE": 150,
+      "LOG_XH_DATA": true
+    },
+
+    "CONTROLLER_0": {
+      "DESCRIPTION": "Built-in controller implemented in C++. Updates values with key prefix CONTROLLER_0_",
+      "ENABLED": true,
+      "RATE": 50,
+      "XH_VECTOR_TO_USE": 0,
+      "LOG_CONTROLLER_DATA": true
+    },
+
+    "CONTROLLER_1": {
+      "DESCRIPTION": "User-defined controller implemented in Python. Updates values with key prefix CONTROLLER_1_",
+      "ENABLED": true,
+      "RATE": 50,
+      "XH_VECTOR_TO_USE": 1,
+      "LOG_CONTROLLER_DATA": true
+    },
+
+    "IMU_ADC": {
+      "DESCRIPTION": "Handles sensor reads from IMUs and ADC.",
+      "ENABLED": true,
+      "RATE": 150,
+      "USE_LSM9DS1": true,
+      "USE_MPU9250": true,
+      "PRIMARY_IMU": "LSM9DS1",
+      "USE_ADC": true
+    },
+
+    "GPS_BAROMETER": {
+      "DESCRIPTION": "Handles sensor reads from the connected GPS and onboard barometer.",
+      "ENABLED": true,
+      "RATE": 5,
+      "USE_GPS": true,
+      "USE_MS5611": true
+    },
+
+    "RCIN_SERVO": {
+      "DESCRIPTION": "Handles reads from RC transmitter and sets servo-rail PWM values.",
+      "ENABLED": true,
+      "RATE": 50,
+      "PWM_FREQUENCY": 50,
+      "CONTROLLER_VECTOR_TO_USE": 0,
+      "ELEVATOR_CHANNEL": 2,
+      "AILERON_CHANNEL": 3,
+      "FLIGHT_MODES": {
+        "MODE_CHANNEL": 4,
+        "MANUAL_RANGE": {
+          "LOW": 750,
+          "HIGH": 1250
+        },
+        "SEMI-AUTO_RANGE": {
+          "LOW": 1251,
+          "HIGH": 1750
+        },
+        "SEMI-AUTO_DEADZONE": 50,
+        "AUTO_RANGE": {
+          "LOW": 1751,
+          "HIGH": 2250
+        }
+      },
+      "MIN_PWM_OUT": 1250,
+      "MAX_PWM_OUT": 1750
+    },
+
+    "TELEMETRY": {
+      "DESCRIPTION": "Sends basic Mavlink messages via radio connected to UART port.",
+      "ENABLED": false,
+      "RATE": 1
+    }
   },
+
+  "WARNING": "!!!!!!!!!!!!!!! DO NOT EDIT BELOW THIS POINT UNLESS YOU KNOW WHAT YOU ARE DOING !!!!!!!!!!!!!!!!!!",
 
   "VECTORS": [
     {
       "ID": "y",
+      "DESCRIPTION": "Holds values from available sensors to be read by estimators.",
       "ENABLED": true,
       "KEYS": [
         "GPS_UPDATES",
@@ -52,29 +130,91 @@
         "ADC_TIME"
       ]
     },
-
     {
-      "ID": "xh",
+      "ID": "xh_0",
+      "DESCRIPTION": "Holds the output from the built-in estimator.",
       "ENABLED": true,
       "KEYS": [
-        "XH_UPDATES",
-        "XH_X",
-        "XH_Y",
-        "XH_Z",
-        "XH_VT",
-        "XH_ALPHA",
-        "XH_BETA",
-        "XH_PHI",
-        "XH_THETA",
-        "XH_PSI",
-        "XH_P",
-        "XH_Q",
-        "XH_R"
+        "XH_0_UPDATES",
+        "XH_0_X",
+        "XH_0_Y",
+        "XH_0_Z",
+        "XH_0_VT",
+        "XH_0_ALPHA",
+        "XH_0_BETA",
+        "XH_0_PHI",
+        "XH_0_THETA",
+        "XH_0_PSI",
+        "XH_0_P",
+        "XH_0_Q",
+        "XH_0_R"
       ]
     },
-
+    {
+      "ID": "xh_1",
+      "DESCRIPTION": "Holds the output from the user-defined estimator.",
+      "ENABLED": true,
+      "KEYS": [
+        "XH_1_UPDATES",
+        "XH_1_X",
+        "XH_1_Y",
+        "XH_1_Z",
+        "XH_1_VT",
+        "XH_1_ALPHA",
+        "XH_1_BETA",
+        "XH_1_PHI",
+        "XH_1_THETA",
+        "XH_1_PSI",
+        "XH_1_P",
+        "XH_1_Q",
+        "XH_1_R"
+      ]
+    },
+    {
+      "ID": "controller_0",
+      "DESCRIPTION": "Holds the output from the built-in controller. If CONTROLLER_VECTOR_TO_USE=0, these values will be used when the aircraft is in AUTO mode.",
+      "ENABLED": true,
+      "KEYS": [
+        "CONTROLLER_0_0",
+        "CONTROLLER_0_1",
+        "CONTROLLER_0_2",
+        "CONTROLLER_0_3",
+        "CONTROLLER_0_4",
+        "CONTROLLER_0_5",
+        "CONTROLLER_0_6",
+        "CONTROLLER_0_7",
+        "CONTROLLER_0_8",
+        "CONTROLLER_0_9",
+        "CONTROLLER_0_10",
+        "CONTROLLER_0_11",
+        "CONTROLLER_0_12",
+        "CONTROLLER_0_13"
+      ]
+    },
+    {
+      "ID": "controller_1",
+      "DESCRIPTION": "Holds the output from the user-defined controller. If CONTROLLER_VECTOR_TO_USE=1, these values will be used when the aircraft is in AUTO mode.",
+      "ENABLED": true,
+      "KEYS": [
+        "CONTROLLER_1_0",
+        "CONTROLLER_1_1",
+        "CONTROLLER_1_2",
+        "CONTROLLER_1_3",
+        "CONTROLLER_1_4",
+        "CONTROLLER_1_5",
+        "CONTROLLER_1_6",
+        "CONTROLLER_1_7",
+        "CONTROLLER_1_8",
+        "CONTROLLER_1_9",
+        "CONTROLLER_1_10",
+        "CONTROLLER_1_11",
+        "CONTROLLER_1_12",
+        "CONTROLLER_1_13"
+      ]
+    },
     {
       "ID": "servo",
+      "DESCRIPTION": "Holds the RCInput values and servo output values.",
       "ENABLED": true,
       "KEYS": [
         "MODE_FLAG",
@@ -105,24 +245,9 @@
         "SERVO_10",
         "SERVO_11",
         "SERVO_12",
-        "SERVO_13",
-        "CONTROLLER_0",
-        "CONTROLLER_1",
-        "CONTROLLER_2",
-        "CONTROLLER_3",
-        "CONTROLLER_4",
-        "CONTROLLER_5",
-        "CONTROLLER_6",
-        "CONTROLLER_7",
-        "CONTROLLER_8",
-        "CONTROLLER_9",
-        "CONTROLLER_10",
-        "CONTROLLER_11",
-        "CONTROLLER_12",
-        "CONTROLLER_13"
+        "SERVO_13"
       ]
     },
-
     {
       "ID": "cmd",
       "ENABLED": true,

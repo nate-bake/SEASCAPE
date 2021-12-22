@@ -2,8 +2,7 @@
 
 struct thread_struct {
     double* array;
-    std::map<std::string, int> keys;
-    std::map<std::string, double> rates;
+    const air_config* cfg;
 } thread_args;
 
 uint64_t current_time_microseconds() {
@@ -12,6 +11,10 @@ uint64_t current_time_microseconds() {
 
 int hertz_to_microseconds(double hertz) {
     return (int)(1000000 / hertz);
+}
+
+float clip_pwm(const air_config* cfg, int pwm) {
+    return (float)(std::max(cfg->MIN_PWM_OUT, std::min(pwm, cfg->MAX_PWM_OUT)));
 }
 
 Ublox* initialize_gps(int milliseconds) {
@@ -59,13 +62,13 @@ ADC* initialize_adc() {
     return adc;
 }
 
-RCOutput* initialize_pwm() {
+RCOutput* initialize_pwm(int freq) {
     RCOutput* pwm = new RCOutput_Navio2();
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < 14; i++) {
         if (!pwm->initialize(i)) {
             return nullptr;
         }
-        if (!pwm->set_frequency(i, 50)) {
+        if (!pwm->set_frequency(i, freq)) {
             return nullptr;
         }
         if (!pwm->enable(i)) {
@@ -101,44 +104,42 @@ int read_adc(ADC* adc, double* array, std::map<std::string, int>& keys) {
 }
 
 int read_rcin(RCInput* rcin, double* array, std::map<std::string, int>& keys) {
-    array[keys["RCIN_0"]] = (double)(rcin->read(0));
-    array[keys["RCIN_1"]] = (double)(rcin->read(1));
-    array[keys["RCIN_2"]] = (double)(rcin->read(2));
-    array[keys["RCIN_3"]] = (double)(rcin->read(3));
-    array[keys["RCIN_4"]] = (double)(rcin->read(4));
-    array[keys["RCIN_5"]] = (double)(rcin->read(5));
-    // SHOULD PROBABLY MAKE THIS MORE GENERAL TO SEE WHICH RCIN CHANNELS ARE IN CONFIG FILE
+    for (int i = 0; i < 14; i++) {
+        array[keys["RCIN_" + std::to_string(i)]] = (double)(rcin->read(i));
+    }
     return 0;
 }
 
-int write_servo(RCOutput* pwm, double* array, std::map<std::string, int>& keys) {
-    // THIS IS ALSO A BIT OF A MESS
-    if (array[keys["RCIN_4"]] < 1250) {
+int write_servo(RCOutput* pwm, double* array, const air_config* cfg) {
+    std::map<std::string, int> keys = cfg->keys;
+    if (cfg->MANUAL_MODE_MIN <= array[keys["RCIN_" + std::to_string(cfg->FLIGHT_MODE_CHANNEL)]] <= cfg->MANUAL_MODE_MAX) {
         array[keys["MODE_FLAG"]] = 0; // mode_flag: manual
         for (int i = 0; i < 14; i++) {
-            pwm->set_duty_cycle(i, (int)array[keys["RCIN_" + std::to_string(i)]]);
+            pwm->set_duty_cycle(i, clip_pwm(cfg, (int)array[keys["RCIN_" + std::to_string(i)]]));
             array[keys["SERVO_" + std::to_string(i)]] = array[keys["RCIN_" + std::to_string(i)]];
         }
-    } else if (array[keys["RCIN_4"]] > 1750) {
+    } else if (cfg->AUTO_MODE_MIN <= array[keys["RCIN_" + std::to_string(cfg->FLIGHT_MODE_CHANNEL)]] <= cfg->AUTO_MODE_MAX) {
         array[keys["MODE_FLAG"]] = 1; //mode_flag: auto
         for (int i = 0; i < 14; i++) {
-            pwm->set_duty_cycle(i, (int)array[keys["CONTROLLER_" + std::to_string(i)]]);
+            pwm->set_duty_cycle(i, clip_pwm(cfg, (int)array[keys["CONTROLLER_" + std::to_string(i)]]));
             array[keys["SERVO_" + std::to_string(i)]] = array[keys["CONTROLLER_" + std::to_string(i)]];
         }
-    } else {
+    } else if (cfg->SEMI_MODE_MIN <= array[keys["RCIN_" + std::to_string(cfg->FLIGHT_MODE_CHANNEL)]] <= cfg->SEMI_MODE_MAX) {
         array[keys["MODE_FLAG"]] = 2; //mode_flag: semi-auto
         bool man_override = false;
-        if ((!(1.45 < array[keys["RCIN_2"]] < 1.55)) || (!(1.45 < array[keys["RCIN_3"]] < 1.55))) {
+        double el = array[keys["RCIN_" + std::to_string(cfg->ELEVATOR_CHANNEL)]];
+        double al = array[keys["RCIN_" + std::to_string(cfg->AILERON_CHANNEL)]];
+        if ((!(std::abs(1500 - el) > cfg->SEMI_DEADZONE)) || (!(std::abs(1500 - al) > cfg->SEMI_DEADZONE))) {
             man_override = true;
         }
         if (man_override) {
             for (int i = 0; i < 14; i++) {
-                pwm->set_duty_cycle(i, (int)array[keys["RCIN_" + std::to_string(i)]]);
+                pwm->set_duty_cycle(i, clip_pwm(cfg, (int)array[keys["RCIN_" + std::to_string(i)]]));
                 array[keys["SERVO_" + std::to_string(i)]] = array[keys["RCIN_" + std::to_string(i)]];
             }
         } else {
             for (int i = 0; i < 14; i++) {
-                pwm->set_duty_cycle(i, (int)array[keys["CONTROLLER_" + std::to_string(i)]]);
+                pwm->set_duty_cycle(i, clip_pwm(cfg, (int)array[keys["CONTROLLER_" + std::to_string(i)]]));
                 array[keys["SERVO_" + std::to_string(i)]] = array[keys["CONTROLLER_" + std::to_string(i)]];
             }
         }
@@ -149,30 +150,48 @@ int write_servo(RCOutput* pwm, double* array, std::map<std::string, int>& keys) 
 void* gps_baro_loop(void* arguments) {
     thread_struct* args = (thread_struct*)arguments;
     double* array = args->array;
-    std::map<std::string, int> keys = args->keys;
-    std::map<std::string, double> rates = args->rates;
-    usleep(100000);
-    printf("initializing gps.\n");
-    usleep(50000);
-    printf("initializing barometer. [MS5611]\n");
-    Ublox* gps = initialize_gps(200);
-    MS5611* barometer = initialize_baro();
+    const air_config* cfg = args->cfg;
+    std::map<std::string, int> keys = cfg->keys;
+    usleep(150000);
+    Ublox* gps;
+    MS5611* barometer;
+    if (cfg->GPS_ENABLED) {
+        gps = initialize_gps(200);
+        printf("Initializing GPS.\n");
+    }
+    if (cfg->MS5611_ENABLED) {
+        barometer = initialize_baro();
+        printf("Initializing Barometer. [MS5611]\n");
+    }
     usleep(500000);
-    int max_sleep = hertz_to_microseconds(rates["GPS_BAROMETER_LOOP"]);
+    int max_sleep = hertz_to_microseconds(cfg->GPS_LOOP_RATE);
     uint64_t start_time, now;
     while (true) {
         start_time = current_time_microseconds();
-        if (gps->decodeMessages(array, keys)) {
+        if (cfg->GPS_ENABLED && gps->decodeMessages(array, keys)) {
+            if (cfg->MS5611_ENABLED) {
+                barometer->readPressure();
+                barometer->calculatePressureAndTemperature();
+                array[keys["BARO_PRES"]] = barometer->getPressure();
+                if (array[keys["BARO_INIT"]] == 0) {
+                    array[keys["BARO_INIT"]] = array[keys["BARO_PRES"]];
+                }
+                array[keys["GPS_UPDATES"]]++;
+                barometer->refreshPressure();
+            }
+            now = current_time_microseconds();
+            usleep(max_sleep - (now - start_time));
+        } else if (!cfg->GPS_ENABLED && cfg->MS5611_ENABLED) {
             barometer->readPressure();
             barometer->calculatePressureAndTemperature();
             array[keys["BARO_PRES"]] = barometer->getPressure();
             if (array[keys["BARO_INIT"]] == 0) {
                 array[keys["BARO_INIT"]] = array[keys["BARO_PRES"]];
             }
-            array[keys["GPS_UPDATES"]]++;
             barometer->refreshPressure();
             now = current_time_microseconds();
-            usleep(max_sleep - (now - start_time));
+            int sleep_time = (int)(max_sleep - (now - start_time));
+            usleep(std::max(sleep_time, 0));
         }
     }
 }
@@ -180,51 +199,83 @@ void* gps_baro_loop(void* arguments) {
 void* imu_loop(void* arguments) {
     thread_struct* args = (thread_struct*)arguments;
     double* array = args->array;
-    std::map<std::string, int> keys = args->keys;
-    std::map<std::string, double> rates = args->rates;
-    printf("initializing imus.\n");
-    usleep(50000);
-    printf("initializing adc.\n");
-    InertialSensor* lsm = initialize_imu("LSM");
-    InertialSensor* mpu = initialize_imu("MPU");
-    ADC* adc = initialize_adc();
+    const air_config* cfg = args->cfg;
+    std::map<std::string, int> keys = cfg->keys;
+    InertialSensor* lsm;
+    InertialSensor* mpu;
+    ADC* adc;
+    // NEED TO LOAD CALIBRATION PROFILES FOR IMUs
+    // WILL PROBABLY BE EASIER IF WE MAKE AIR.CPP MORE MODULAR AND OBJECT-ORIENTED
+    if (cfg->LSM_ENABLED) {
+        lsm = initialize_imu("LSM");
+        printf("Initializing IMU. [LSM9DS1]\n");
+    }
+    if (cfg->MPU_ENABLED) {
+        mpu = initialize_imu("MPU");
+        printf("Initializing IMU. [MPU9250]\n");
+    }
+    if (cfg->ADC_ENABLED) {
+        adc = initialize_adc();
+        printf("Initializing ADC.\n");
+    }
     usleep(500000);
-    int max_sleep = hertz_to_microseconds(rates["IMU_LOOP"]);
+    int max_sleep = hertz_to_microseconds(cfg->IMU_LOOP_RATE);
     uint64_t start_time, now;
     while (true) {
         start_time = current_time_microseconds();
-        read_imu(lsm, array, keys, 1);
-        read_imu(mpu, array, keys, 2);
-        array[keys["IMU_UPDATES"]]++;
-        read_adc(adc, array, keys);
+        if (cfg->LSM_ENABLED) {
+            int index = 1;
+            if (cfg->PRIMARY_IMU == "MPU9250") {
+                index = 2;
+            }
+            read_imu(lsm, array, keys, index);
+        }
+        if (cfg->MPU_ENABLED) {
+            int index = 2;
+            if (!cfg->LSM_ENABLED || cfg->PRIMARY_IMU == "MPU9250") {
+                index = 1;
+            }
+            read_imu(mpu, array, keys, index);
+        }
+        if (cfg->LSM_ENABLED || cfg->MPU_ENABLED) {
+            array[keys["IMU_UPDATES"]]++;
+        }
+        if (cfg->ADC_ENABLED) {
+            read_adc(adc, array, keys);
+        }
         now = current_time_microseconds();
-        usleep(max_sleep - (now - start_time));
+        int sleep_time = (int)(max_sleep - (now - start_time));
+        usleep(std::max(sleep_time, 0));
     }
 }
 
 void* servo_loop(void* arguments) {
     thread_struct* args = (thread_struct*)arguments;
     double* array = args->array;
-    std::map<std::string, int> keys = args->keys;
-    std::map<std::string, double> rates = args->rates;
+    const air_config* cfg = args->cfg;
+    std::map<std::string, int> keys = cfg->keys;
     usleep(200000);
-    printf("initializing rcin.\n");
+    printf("Initializing RCIN.\n");
     usleep(50000);
-    printf("initializing servos.\n");
+    printf("Initializing Servos.\n");
     RCInput* rcin = new RCInput_Navio2();
     rcin->initialize();
-    RCOutput* pwm = initialize_pwm();
+    RCOutput* pwm = initialize_pwm(cfg->PWM_FREQUENCY);
+    if (!pwm) {
+        printf("Failed to initialize servo-rail PWM. Could be lacking root privilege.\n");
+    }
     usleep(500000);
-    int max_sleep = hertz_to_microseconds(rates["RCIN_SERVO_LOOP"]);
+    int max_sleep = hertz_to_microseconds(cfg->SERVO_LOOP_RATE);
     uint64_t start_time, now;
     while (true) {
         start_time = current_time_microseconds();
         read_rcin(rcin, array, keys);
         if (pwm) {
-            write_servo(pwm, array, keys);
+            write_servo(pwm, array, cfg);
         }
         now = current_time_microseconds();
-        usleep(max_sleep - (now - start_time));
+        int sleep_time = (int)(max_sleep - (now - start_time));
+        usleep(std::max(sleep_time, 0));
     }
 }
 
@@ -246,13 +297,13 @@ void* telemetry_loop(void* arguments) {
     uint64_t t, now;
     thread_struct* args = (thread_struct*)arguments;
     double* array = args->array;
-    std::map<std::string, int> keys = args->keys;
-    std::map<std::string, double> rates = args->rates;
+    const air_config* cfg = args->cfg;
+    std::map<std::string, int> keys = cfg->keys;
     Generic_Port* port;
     port = new Serial_Port("/dev/ttyAMA0", 57600);
     port->start();
     printf("opening mavlink port. [/dev/tty/AMA0]\n");
-    int max_sleep = hertz_to_microseconds(rates["TELEMETRY_LOOP"]);
+    int max_sleep = hertz_to_microseconds(cfg->TELEMETRY_LOOP_RATE);
     while (true) {
         t = current_time_microseconds() - t0;
         mavlink_message_t msg0;
@@ -271,78 +322,47 @@ void* telemetry_loop(void* arguments) {
         // SYSTEM STATUS MSG #1 for battery
         // HUD MSG #74 for heading and speed
         now = current_time_microseconds() - t0;
-        usleep(max_sleep - (now - t));
+        int sleep_time = (int)(max_sleep - (now - t));
+        usleep(std::max(sleep_time, 0));
     }
 }
 
-void* estimator_loop(void* arguments) {
-    usleep(1500000);
+void* estimation_loop(void* arguments) {
+    usleep(5000000);
     thread_struct* args = (thread_struct*)arguments;
     double* array = args->array;
-    std::map<std::string, int> keys = args->keys;
-    std::map<std::string, double> rates = args->rates;
+    const air_config* cfg = args->cfg;
+    std::map<std::string, int> keys = cfg->keys;
     int imu = 0, gps = 0;
 
-    std::vector<std::vector<double>> accel, gyro, mag;
-    uint64_t t1 = current_time_microseconds();
-    uint64_t t2 = t1;
-    printf("\nmeasuring imu bias. [keep aircraft level]\n");
-    char chars[] = { '-', '-', '\\', '\\', '|', '|', '/', '/' };
-    unsigned int i = 0;
-    while ((t2 - t1) < 7000) {
-        if (i % 2 == 0) {
-            printf("\r%c ", chars[i % sizeof(chars)]);
-        }
-        fflush(stdout);
-        t2 = current_time_microseconds();
-        if (imu == array[keys["IMU_UPDATES"]]) {
-            continue;
-        }
-        imu = array[keys["IMU_UPDATES"]];
-        accel.push_back({ array[keys["IMU_1_AX"]], array[keys["IMU_1_AY"]], array[keys["IMU_1_AZ"]] });
-        gyro.push_back({ array[keys["IMU_1_GYRO_P"]], array[keys["IMU_1_GYRO_Q"]], array[keys["IMU_1_GYRO_R"]] });
-        mag.push_back({ array[keys["IMU_1_MAG_X"]], array[keys["IMU_1_MAG_Y"]], array[keys["IMU_1_MAG_Z"]] });
-        usleep(50000);
-        i++;
-    }
-    printf("\rbias measurement complete.\n\n");
-    std::vector<double> accel_bias, gyro_bias, mag_bias;
-    compute_average_bias(accel, accel_bias);
-    compute_average_bias(gyro, gyro_bias);
-    compute_average_bias(mag, mag_bias);
-    // std::cout << accel_bias.at(0) << std::endl;
-
-    int max_sleep = hertz_to_microseconds(rates["BUILT-IN_ESTIMATOR"]);
+    int max_sleep = hertz_to_microseconds(cfg->ESTIMATION_LOOP_RATE);
     uint64_t start_time, now;
     while (true) {
         start_time = current_time_microseconds();
-        bool new_gps = false;
         if (imu == array[keys["IMU_UPDATES"]]) {
             continue;
         }
         imu = array[keys["IMU_UPDATES"]];
         if (gps != array[keys["GPS_UPDATES"]]) {
             gps = array[keys["GPS_UPDATES"]];
-            new_gps = true;
-            // printf("new gps\n");
             // ESTIMATION WITH NEW GPS MEASUREMENT HERE
         } else {
-            // printf("no new gps\n");
             // ESTIMATION WITHOUT NEW GPS MEASUREMENT HERE
         }
         now = current_time_microseconds();
-        usleep(max_sleep - (now - start_time));
+        int sleep_time = (int)(max_sleep - (now - start_time));
+        usleep(std::max(sleep_time, 0));
     }
 }
 
-void* controller_loop(void* arguments) {
+void* control_loop(void* arguments) {
     usleep(1500000);
     thread_struct* args = (thread_struct*)arguments;
     double* array = args->array;
-    std::map<std::string, int> keys = args->keys;
-    std::map<std::string, double> rates = args->rates;
+    const air_config* cfg = args->cfg;
+    std::map<std::string, int> keys = cfg->keys;
     int updates = 0;
-    int max_sleep = hertz_to_microseconds(rates["BUILT-IN_CONTROLLER"]);
+    int max_sleep = hertz_to_microseconds(cfg->CONTROL_LOOP_RATE);
     uint64_t start_time, now;
     while (true) {
         start_time = current_time_microseconds();
@@ -358,16 +378,18 @@ void* controller_loop(void* arguments) {
         array[keys["CONTROLLER_4"]] = array[keys["RCIN_4"]];
         array[keys["CONTROLLER_5"]] = array[keys["RCIN_5"]];
         now = current_time_microseconds();
-        usleep(max_sleep - (now - start_time));
+        int sleep_time = (int)(max_sleep - (now - start_time));
+        usleep(std::max(sleep_time, 0));
     }
 }
 
 int main(int argc, char* argv[]) {
-    std::map<std::string, double> rates;
-    std::map<std::string, int> keys;
+    if (argc < 2) {
+        printf("ERROR: Please include config filepath as command-line argument.");
+        exit(1);
+    }
+    const air_config cfg = air_config(argv[1]);
     double* array;
-
-    load_config(rates, keys);
 
     key_t key = ftok(GETEKYDIR, PROJECTID);
     if (key < 0) {
@@ -402,55 +424,45 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 
-    memset(array, 0, 2048); // CLEAR SHARED VECTOR JUST IN CASE
+    memset(array, 0, SHMSIZE); // CLEAR SHARED VECTOR JUST IN CASE
 
     pthread_t imu_thread;
     pthread_t gps_baro_thread;
     pthread_t servo_thread;
-    pthread_t estimator_thread;
-    pthread_t controller_thread;
+    pthread_t estimation_thread;
+    pthread_t control_thread;
     pthread_t telemetry_thread;
 
     thread_args.array = array;
-    thread_args.keys = keys;
-    thread_args.rates = rates;
+    thread_args.cfg = &cfg;
 
     printf("\n");
 
-    if (rates["IMU_LOOP"] > 0) {
+    if (cfg.IMU_LOOP_ENABLED) {
         pthread_create(&imu_thread, NULL, &imu_loop, (void*)&thread_args);
     }
-    if (rates["GPS_BAROMETER_LOOP"] > 0) {
+    if (cfg.GPS_LOOP_ENABLED) {
         pthread_create(&gps_baro_thread, NULL, &gps_baro_loop, (void*)&thread_args);
     }
-    if (rates["RCIN_SERVO_LOOP"] > 0) {
+    if (cfg.SERVO_LOOP_ENABLED) {
         pthread_create(&servo_thread, NULL, &servo_loop, (void*)&thread_args);
     }
-    if (rates["BUILT-IN_ESTIMATOR"] > 0) {
-        pthread_create(&estimator_thread, NULL, &estimator_loop, (void*)&thread_args);
+    if (cfg.ESTIMATOR_ENABLED) {
+        pthread_create(&estimation_thread, NULL, &estimation_loop, (void*)&thread_args);
     }
-    if (rates["BUILT-IN_CONTROLLER"] > 0) {
-        pthread_create(&controller_thread, NULL, &controller_loop, (void*)&thread_args);
+    if (cfg.CONTROLLER_ENABLED) {
+        pthread_create(&control_thread, NULL, &control_loop, (void*)&thread_args);
     }
-    if (rates["TELEMETRY_LOOP"] > 0) {
+    if (cfg.TELEMETRY_LOOP_ENABLED) {
         pthread_create(&telemetry_thread, NULL, &telemetry_loop, (void*)&thread_args);
     }
 
-    usleep(10000000);
-    printf("Enter to exit\n");
-    getchar();
-
-    if (shmdt(array) < 0) {
-        printf("shmdt error");
-        exit(1);
-    }
-
-    if (shmctl(shmid, IPC_RMID, NULL) == -1) {
-        printf("shmctl error");
-        exit(1);
-    } else {
-        printf("remove shared memory identifier successful\n");
-    }
+    pthread_join(imu_thread, NULL);
+    pthread_join(gps_baro_thread, NULL);
+    pthread_join(servo_thread, NULL);
+    pthread_join(estimation_thread, NULL);
+    pthread_join(control_thread, NULL);
+    pthread_join(telemetry_thread, NULL);
 
     return 0;
 }

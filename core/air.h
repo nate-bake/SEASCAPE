@@ -30,8 +30,8 @@
 #include <iterator>
 #include <map>
 
-#include "load_config.cpp"
-
-#define GETEKYDIR ("/tmp")
+#define GETEKYDIR ("core/air.h")
 #define PROJECTID (2333)
 #define SHMSIZE (4096)
+
+#include "air_config.h"

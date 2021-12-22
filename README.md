@@ -10,26 +10,25 @@ python-based educational autopilot system
 - created Makefile for compiling.
 - added MPU9250 to imu loop, allowing data from both IMUs to be available in the y vector.
 - added option to set loop rates in config file.
+- added some customization options to config file. not sure if this is the best solution though.
+- created python estimator/controller skeletons and connected them to air.cpp using a launch script.
+- moved all sensitive code into 'core/' folder, added config validator, limited write capabilities on python side.
 
 ## TODO
 
 - add IMU calibration as a separate routine and configure air.cpp to use the profile and recommend new calibration if outdated.
 - add our own estimator and controller to air.cpp and figure out how we want to log results.
-- create a test.py skeleton and sync it with air.cpp using a launch script.
-- figure out better ways to protect our code from goons.
-- add more customization options to config file, such as ability to select IMU, which estimator to use, and RC transmitter configurations.
-- maybe break up air.cpp into multiple files to allow more flexibility?
-- add some preflight checks and warn the user if anything in the config file might be a problem.
+- maybe break up air.cpp into multiple files to allow more flexibility
+- test servo loop cuz idk if the rcin and pwm scales are the same.
+- should telemetry be on the c++ or python side?
+- actually implement the xh/controller vector choices in config, and maybe find a way to simplify reads on python side.
 
 ## SETUP / DEPENDENCIES
 
 - install JSONCPP on Navio so that C++ can read config file. `sudo apt-get install libjsoncpp-dev`
-- install Python IPC package on Navio so Python can access shared memory. `pip3 install sysv_ipc`
+- install Python IPC package on Navio so Python can access shared memory. `sudo pip3 install sysv_ipc`
 - i modified some of the files in the Navio2 folder to get the GPS to work properly, so we can no longer include it as a submodule from Emlid.
 
 ## COMPILE / RUN
 
-- `make clean`
-- `make`
-- `./air`
-- `python3 shared_test.py` to test reading shared vector.
+- `sudo python3 launch.py` should hopefully take care of everything.
