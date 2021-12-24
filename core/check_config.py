@@ -8,6 +8,7 @@ def ask_proceed():
             str(input("Would you like to continue the launch? [Y/N]: ")).upper().strip()
         )
         if reply == "Y":
+            print('Ok. Continuing...\n')
             return True
         if reply == "N":
             return False
@@ -55,6 +56,7 @@ def check_config(filepath):
                 "USE_LSM9DS1": {},
                 "USE_MPU9250": {},
                 "PRIMARY_IMU": {},
+                "APPLY_CALIBRATION_PROFILE": {},
                 "USE_ADC": {},
             },
             "GPS_BAROMETER": {

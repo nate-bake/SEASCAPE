@@ -27,6 +27,7 @@ public:
     bool MS5611_ENABLED;
     bool GPS_ENABLED;
     std::string PRIMARY_IMU;
+    bool USE_IMU_CALIBRATION;
 
     int PWM_FREQUENCY;
     int MIN_PWM_OUT;

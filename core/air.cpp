@@ -38,7 +38,26 @@ MS5611* initialize_baro() {
     return barometer;
 }
 
-InertialSensor* initialize_imu(std::string id = "LSM") {
+int load_calibration_file(std::string sensor, struct imu_calibration_profile* calibration_profile) {
+    std::ifstream file("data/calibration/" + sensor + "_calibration.bin", std::ios::binary);
+
+    char* memblock = new char[sizeof(double) * 81]; // IDK SIZE OF MATRIX
+    file.read(memblock, sizeof(double) * 1);
+    calibration_profile->matrix = (double*)memblock;
+
+    char* memblock2 = new char[sizeof(double) * 9];
+    file.read(memblock2, sizeof(double) * 9);
+    calibration_profile->offsets = (double*)memblock2;
+
+    if (!file.good()) {
+        std::cout << "ERROR: Could not read 'data/calibration/" << sensor << "_calibration.bin'.\n";
+        exit(-1);
+    }
+    file.close();
+    return 0;
+}
+
+InertialSensor* initialize_imu(std::string id = "LSM", struct imu_calibration_profile* calibration_profile = nullptr) {
     InertialSensor* imu;
     if (id == "LSM") {
         imu = new LSM9DS1();
@@ -52,6 +71,7 @@ InertialSensor* initialize_imu(std::string id = "LSM") {
         return nullptr;
     }
     imu->initialize();
+    imu->set_calibration_profile(calibration_profile);
     return imu;
 }
 
@@ -77,12 +97,15 @@ RCOutput* initialize_pwm(int freq) {
     return pwm;
 }
 
-int read_imu(InertialSensor* imu, double* array, std::map<std::string, int>& keys, int index = 1) {
+int read_imu(InertialSensor* imu, double* array, std::map<std::string, int>& keys, int index, bool use_calibration) {
     imu->update();
-    std::string prefix = "y_IMU_" + std::to_string(index);
-    imu->read_accelerometer(array + keys[prefix + "_AX"], array + keys[prefix + "_AY"], array + keys[prefix + "_AZ"]);
-    imu->read_gyroscope(array + keys[prefix + "_GYRO_P"], array + keys[prefix + "_GYRO_Q"], array + keys[prefix + "_GYRO_Q"]);
-    imu->read_magnetometer(array + keys[prefix + "_MAG_X"], array + keys[prefix + "_MAG_Y"], array + keys[prefix + "_MAG_Z"]);
+    if (use_calibration) {
+        imu->adjust();
+    }
+    std::string prefix = "y_IMU_" + std::to_string(index) + "_";
+    imu->read_accelerometer(array + keys[prefix + "AX"], array + keys[prefix + "AY"], array + keys[prefix + "AZ"]);
+    imu->read_gyroscope(array + keys[prefix + "GYRO_P"], array + keys[prefix + "GYRO_Q"], array + keys[prefix + "GYRO_Q"]);
+    imu->read_magnetometer(array + keys[prefix + "MAG_X"], array + keys[prefix + "MAG_Y"], array + keys[prefix + "MAG_Z"]);
     return 0;
 }
 
@@ -164,7 +187,7 @@ void* gps_baro_loop(void* arguments) {
         gps = initialize_gps(200);
     }
     if (cfg->MS5611_ENABLED) {
-        printf("Initializing Barometer. [MS5611]\n");
+        printf("Initializing Barometer.\t\t\t[MS5611]\n");
         barometer = initialize_baro();
     }
     usleep(500000);
@@ -211,12 +234,28 @@ void* imu_loop(void* arguments) {
     // NEED TO LOAD CALIBRATION PROFILES FOR IMUs
     // WILL PROBABLY BE EASIER IF WE MAKE AIR.CPP MORE MODULAR AND OBJECT-ORIENTED
     if (cfg->LSM_ENABLED) {
-        printf("Initializing IMU. [LSM9DS1]\n");
-        lsm = initialize_imu("LSM");
+        if (cfg->USE_IMU_CALIBRATION) {
+            struct imu_calibration_profile calibration_profile;
+            printf("Loading IMU calibration profile.\t[LSM9DS1]\n");
+            load_calibration_file("LSM9DS1", &calibration_profile);
+            printf("Initializing IMU.\t\t\t[LSM9DS1]\n");
+            lsm = initialize_imu("LSM", &calibration_profile);
+        } else {
+            printf("Initializing IMU.\t\t\t[LSM9DS1]\n");
+            lsm = initialize_imu("LSM", nullptr);
+        }
     }
     if (cfg->MPU_ENABLED) {
-        printf("Initializing IMU. [MPU9250]\n");
-        mpu = initialize_imu("MPU");
+        struct imu_calibration_profile calibration_profile;
+        if (cfg->USE_IMU_CALIBRATION) {
+            printf("Loading IMU calibration profile.\t[MPU9250]\n");
+            load_calibration_file("MPU9250", &calibration_profile);
+            printf("Initializing IMU.\t\t\t[MPU9250]\n");
+            mpu = initialize_imu("MPU", &calibration_profile);
+        } else {
+            printf("Initializing IMU.\t\t\t[MPU9250]\n");
+            mpu = initialize_imu("MPU", nullptr);
+        }
     }
     if (cfg->ADC_ENABLED) {
         printf("Initializing ADC.\n");
@@ -232,14 +271,14 @@ void* imu_loop(void* arguments) {
             if (cfg->PRIMARY_IMU == "MPU9250") {
                 index = 2;
             }
-            read_imu(lsm, array, keys, index);
+            read_imu(lsm, array, keys, index, cfg->USE_IMU_CALIBRATION);
         }
         if (cfg->MPU_ENABLED) {
             int index = 2;
             if (!cfg->LSM_ENABLED || cfg->PRIMARY_IMU == "MPU9250") {
                 index = 1;
             }
-            read_imu(mpu, array, keys, index);
+            read_imu(mpu, array, keys, index, cfg->USE_IMU_CALIBRATION);
         }
         if (cfg->LSM_ENABLED || cfg->MPU_ENABLED) {
             array[keys["y_IMU_UPDATES"]]++;
@@ -283,18 +322,6 @@ void* servo_loop(void* arguments) {
     }
 }
 
-void compute_average_bias(std::vector<std::vector<double>>& measured, std::vector<double>& avg) {
-    avg.resize(3);
-    for (int i = 0; i < measured.size(); i++) {
-        avg[0] += measured[i][0];
-        avg[1] += measured[i][1];
-        avg[2] += measured[i][2];
-    }
-    avg[0] /= measured.size();
-    avg[1] /= measured.size();
-    avg[2] /= measured.size();
-}
-
 void* telemetry_loop(void* arguments) {
     usleep(300000);
     uint64_t t0 = current_time_microseconds();
@@ -306,7 +333,7 @@ void* telemetry_loop(void* arguments) {
     Generic_Port* port;
     port = new Serial_Port("/dev/ttyAMA0", 57600);
     port->start();
-    printf("opening mavlink port. [/dev/tty/AMA0]\n");
+    printf("Opening mavlink port.\t[/dev/tty/AMA0]\n");
     int max_sleep = hertz_to_microseconds(cfg->TELEMETRY_LOOP_RATE);
     while (true) {
         t = current_time_microseconds() - t0;
@@ -398,7 +425,7 @@ int main(int argc, char* argv[]) {
 
     key_t key = ftok(GETEKYDIR, PROJECTID);
     if (key < 0) {
-        printf("ftok error");
+        printf("ftok error\n");
         exit(1);
     }
 
@@ -411,21 +438,21 @@ int main(int argc, char* argv[]) {
             printf("reference shmid = %d\n", shmid);
         } else {
             perror("errno");
-            printf("shmget error");
+            printf("shmget error\n");
             exit(1);
         }
     }
 
     if ((array = (double*)shmat(shmid, 0, 0)) == (void*)-1) {
         if (shmctl(shmid, IPC_RMID, NULL) == -1) {
-            printf("shmctl error");
+            printf("shmctl error\n");
             exit(1);
         } else {
             printf("Attach shared memory failed\n");
             printf("remove shared memory identifier successful\n");
         }
 
-        printf("shmat error");
+        printf("shmat error\n");
         exit(1);
     }
 

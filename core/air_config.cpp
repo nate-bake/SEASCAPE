@@ -12,6 +12,9 @@ air_config::air_config(std::string filepath) {
         exit(1);
     }
 
+    // we can assume config file is properly setup at this point.
+    // thanks to check_config.py
+
     auto threads = cfg["THREADS"];
 
     IMU_LOOP_RATE = threads["IMU_ADC"]["RATE"].asDouble();
@@ -32,6 +35,7 @@ air_config::air_config(std::string filepath) {
     LSM_ENABLED = threads["IMU_ADC"]["USE_LSM9DS1"].asBool();
     MPU_ENABLED = threads["IMU_ADC"]["USE_MPU9250"].asBool();
     PRIMARY_IMU = threads["IMU_ADC"]["PRIMARY_IMU"].asString();
+    USE_IMU_CALIBRATION = threads["IMU_ADC"]["APPLY_CALIBRATION_PROFILE"].asBool();
     ADC_ENABLED = threads["IMU_ADC"]["USE_ADC"].asBool();
     GPS_ENABLED = threads["GPS_BAROMETER"]["USE_GPS"].asBool();
     MS5611_ENABLED = threads["GPS_BAROMETER"]["USE_MS5611"].asBool();
@@ -50,7 +54,7 @@ air_config::air_config(std::string filepath) {
     AUTO_MODE_MIN = threads["RCIN_SERVO"]["FLIGHT_MODES"]["AUTO_RANGE"]["LOW"].asInt();
     AUTO_MODE_MAX = threads["RCIN_SERVO"]["FLIGHT_MODES"]["AUTO_RANGE"]["HIGH"].asInt();
 
-    int i = 1; // LEAVE INDEX 0 EMPTY FOR DEFAULT WHEN KEY NOT FOUND
+    int i = 1; // leave index 0 empty for default when key not found
     auto vectors = cfg["VECTORS"];
 
     for (int v = 0; v < vectors.size(); v++) {
@@ -58,11 +62,7 @@ air_config::air_config(std::string filepath) {
         auto ks = vector["KEYS"];
         for (int k = 0; k < ks.size(); k++) {
             std::string key = vector["ID"].asString() + "_" + ks[k].asString();
-            if (!keys.insert(std::pair<std::string, int>(key, i)).second) {
-                printf("DUPLICATE KEYS FOUND IN CONFIG FILE.\n");
-                std::exit(-1);
-            }
-            i++;
+            keys.insert(std::pair<std::string, int>(key, i++));
         }
     }
 }

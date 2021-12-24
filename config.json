@@ -37,6 +37,7 @@
       "USE_LSM9DS1": true,
       "USE_MPU9250": true,
       "PRIMARY_IMU": "LSM9DS1",
+      "APPLY_CALIBRATION_PROFILE": true,
       "USE_ADC": true
     },
 

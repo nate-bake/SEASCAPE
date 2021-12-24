@@ -59,7 +59,7 @@ def estimator_loop(mem: helper.helper, max_sleep: float):
             time.sleep(0.001)
             continue
         imu = IMU_UPDATES
-        print(IMU_1_AX)
+        print(IMU_1_AX, IMU_2_AX)
         if gps != GPS_UPDATES:
             gps = GPS_UPDATES
             pass  # do estimation with gps here.
