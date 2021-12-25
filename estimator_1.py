@@ -24,7 +24,7 @@ def estimator_loop(mem: helper.helper, max_sleep: float):
             IMU_1_MAG_X,
             IMU_1_MAG_Y,
             IMU_1_MAG_Z,
-            IMU_2_AX,
+            IMU_2_AX,  # if you plan to use IMU_2 be sure you have both IMUs enabled in config.json
             IMU_2_AY,
             IMU_2_AZ,
             IMU_2_GYRO_P,

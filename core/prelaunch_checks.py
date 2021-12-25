@@ -1,4 +1,8 @@
 import json
+import os
+import sys
+import datetime
+from dateutil.relativedelta import relativedelta
 
 
 def ask_proceed():
@@ -8,18 +12,18 @@ def ask_proceed():
             str(input("Would you like to continue the launch? [Y/N]: ")).upper().strip()
         )
         if reply == "Y":
-            print('Ok. Continuing...\n')
+            print("Ok. Continuing...\n")
             return True
         if reply == "N":
             return False
 
 
-def check(obj, structure, path):
+def check_key_structure(obj, structure, path):
     try:
         for key, value in structure.items():
             path += "/" + key
             o = obj[key]
-            error, path = check(o, value, path)
+            error, path = check_key_structure(o, value, path)
             if error:
                 return error, path
         return "", path.rsplit("/", 1)[0]
@@ -27,28 +31,45 @@ def check(obj, structure, path):
         return key, path.rsplit("/", 1)[0]
 
 
-def check_config(filepath):
+def check_calibration_date(filepath):
+    mtime = os.path.getmtime(filepath)
+    modified = datetime.datetime.fromtimestamp(mtime)
+    a_month_ago = datetime.datetime.now() - relativedelta(months=1)
+    if modified < a_month_ago:
+        return modified
+    return None
 
-    cfg = json.load(open(filepath))
+
+def check_all():
+
+    cfg = json.load(open("config.json"))
 
     ########################## MAKE SURE ATTRIBUTES ARE PRESENT ############################
 
     path = ""
     structure = {
         "THREADS": {
-            "ESTIMATOR_0": {"ENABLED": {}, "RATE": {}, "LOG_XH_DATA": {}},
-            "ESTIMATOR_1": {"ENABLED": {}, "RATE": {}, "LOG_XH_DATA": {}},
+            "LOGGER": {
+                "ENABLED": {},
+                "RATE": {},
+                "LOG_SENSOR_DATA": {},
+                "LOG_ESTIMATOR_0": {},
+                "LOG_ESTIMATOR_1": {},
+                "LOG_CONTROLLER_0": {},
+                "LOG_CONTROLLER_1": {},
+                "LOG_RCIN_SERVO": {},
+            },
+            "ESTIMATOR_0": {"ENABLED": {}, "RATE": {}},
+            "ESTIMATOR_1": {"ENABLED": {}, "RATE": {}},
             "CONTROLLER_0": {
                 "ENABLED": {},
                 "RATE": {},
                 "XH_VECTOR_TO_USE": {},
-                "LOG_CONTROLLER_DATA": {},
             },
             "CONTROLLER_1": {
                 "ENABLED": {},
                 "RATE": {},
                 "XH_VECTOR_TO_USE": {},
-                "LOG_CONTROLLER_DATA": {},
             },
             "IMU_ADC": {
                 "ENABLED": {},
@@ -86,11 +107,11 @@ def check_config(filepath):
         }
     }
 
-    key, path = check(cfg, structure, path)
+    key, path = check_key_structure(cfg, structure, path)
 
     if key:
         print(
-            f"CONFIG ERROR:\n\tAttribute {key} is missing in path '{path}' of your config file."
+            f"CONFIG ERROR: Attribute {key} is missing in path '{path}' of config.json.\n"
         )
         return None, None
 
@@ -99,6 +120,7 @@ def check_config(filepath):
     threads = cfg["THREADS"]
 
     for name in [
+        "LOGGER",
         "ESTIMATOR_0",
         "ESTIMATOR_1",
         "CONTROLLER_0",
@@ -112,12 +134,12 @@ def check_config(filepath):
         try:
             if t["RATE"] <= 0.0 and t["ENABLED"]:
                 print(
-                    f"CONFIG ERROR:\n\tInvalid rate specified for {name} thread. Rate must be greater than 0 hertz.\n\tIf you wish to disable the thread, set ENABLED to false."
+                    f"CONFIG ERROR: Invalid rate specified for {name} thread. Rate must be greater than 0 hertz.\nIf you wish to disable the thread, set ENABLED to false.\n"
                 )
                 return None, None
         except TypeError:
             print(
-                f"CONFIG ERROR:\n\tInvalid type for ENABLED and/or RATE attributes of {name} thread.\n\tENABLED should be boolean, RATE should be numeric."
+                f"CONFIG ERROR:\n\tInvalid type for ENABLED and/or RATE attributes of {name} thread.\nENABLED should be boolean, RATE should be numeric.\n"
             )
             return None, None
 
@@ -133,11 +155,11 @@ def check_config(filepath):
         xh = t["XH_VECTOR_TO_USE"]
         if xh not in [0, 1]:
             print(
-                f"CONFIG ERROR:\n\tInvalid value for THREADS/{name}/XH_VECTOR_TO_USE. Should be either 0 or 1."
+                f"CONFIG ERROR: Invalid value for THREADS/{name}/XH_VECTOR_TO_USE. Should be either 0 or 1.\n"
             )
         if not threads["ESTIMATOR_" + str(xh)]["ENABLED"]:
             print(
-                f"CONFIG WARNING:\n\t{name} is expecting to read values from ESTIMATOR_{xh} which is disabled.\n\tHaving the xh_{xh} vector empty will likely yield dangerously innacurate results from {name}."
+                f"CONFIG WARNING: {name} is expecting to read values from ESTIMATOR_{xh} which is disabled.\nHaving the xh_{xh} vector empty will likely yield dangerously innacurate results from {name}."
             )
             if not ask_proceed():
                 return None, None
@@ -149,14 +171,51 @@ def check_config(filepath):
         i = t["CONTROLLER_VECTOR_TO_USE"]
         if i not in [0, 1]:
             print(
-                f"CONFIG ERROR:\n\tInvalid value for THREADS/RCIN_SERVO/CONTROLER_VECTOR_TO_USE. Should be either 0 or 1."
+                f"CONFIG ERROR: Invalid value for THREADS/RCIN_SERVO/CONTROLER_VECTOR_TO_USE. Should be either 0 or 1.\n"
             )
         if not threads["CONTROLLER_" + str(i)]["ENABLED"]:
             print(
-                f"CONFIG WARNING:\n\tRCIN_SERVO is expecting to read values from CONTROLLER_{i} which is disabled.\n\tHaving the CONTROLLER_{i} vector empty will likely yield dangerously innacurate servo outputs."
+                f"CONFIG WARNING: RCIN_SERVO is expecting to read values from CONTROLLER_{i} which is disabled.\nHaving the CONTROLLER_{i} vector empty will likely yield dangerously innacurate servo outputs."
             )
             if not ask_proceed():
                 return None, None
+
+    ############################### CHECK IMU CALIBRATION FILES ##############################
+
+    imu_cfg = cfg["THREADS"]["IMU_ADC"]
+    if imu_cfg["ENABLED"] and imu_cfg["APPLY_CALIBRATION_PROFILE"]:
+        if imu_cfg["USE_LSM9DS1"]:
+            if not os.path.exists("data/calibration/LSM9DS1_calibration.bin"):
+                print(
+                    "Looks like you haven't calibrated your LSM9DS1 IMU yet. Try launching again after running the calibration script.\n"
+                )
+                sys.exit()
+            modified = check_calibration_date(
+                "data/calibration/LSM9DS1_calibration.bin"
+            )
+            if modified is not None:
+                print(
+                    f"Looks like you haven't calibrated your LSM9DS1 IMU in over a month. [{modified.strftime('%m/%d/%Y, %H:%M:%S')}]"
+                )
+                if not ask_proceed():
+                    sys.exit()
+        if imu_cfg["USE_MPU9250"]:
+            if not os.path.exists("data/calibration/MPU9250_calibration.bin"):
+                print(
+                    "Looks like you haven't calibrated your MPU9250 IMU yet. Try launching again after running the calibration script.\n"
+                )
+                sys.exit()
+            modified = check_calibration_date(
+                "data/calibration/MPU9250_calibration.bin"
+            )
+            if modified is not None:
+                print(
+                    f"Looks like you haven't calibrated your MPU9250 IMU in over a month. [{modified.strftime('%m/%d/%Y, %H:%M:%S')}]"
+                )
+                if not ask_proceed():
+                    sys.exit()
+
+    ########################### LOAD KEYS AND CHECK FOR DUPLICATES ############################
 
     i = 1
     vectors = cfg["VECTORS"]
@@ -168,7 +227,7 @@ def check_config(filepath):
         for k in ks:
             k = v["ID"] + "_" + k
             if k in keys.keys():
-                print(f"DUPLICATE KEYS '{k}' FOUND IN CONFIG FILE.")
+                print(f"CONFIG ERROR: Duplicate keys '{k}' found in config.json.\n")
                 return None, None
             keys[k] = i
             i += 1
@@ -177,4 +236,4 @@ def check_config(filepath):
 
 
 if __name__ == "__main__":
-    check_config()
+    check_all()

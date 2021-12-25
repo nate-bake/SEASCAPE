@@ -416,11 +416,7 @@ void* control_loop(void* arguments) {
 }
 
 int main(int argc, char* argv[]) {
-    if (argc < 2) {
-        printf("ERROR: Please include config filepath as command-line argument.");
-        exit(1);
-    }
-    const air_config cfg = air_config(argv[1]);
+    const air_config cfg;
     double* array;
 
     key_t key = ftok(GETEKYDIR, PROJECTID);

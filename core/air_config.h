@@ -43,6 +43,6 @@ public:
     int AUTO_MODE_MIN;
     int AUTO_MODE_MAX;
 
-    air_config(std::string filepath);
+    air_config();
 
 };

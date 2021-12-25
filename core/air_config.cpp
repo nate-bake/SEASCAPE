@@ -1,11 +1,11 @@
 #include "air_config.h"
 
-air_config::air_config(std::string filepath) {
+air_config::air_config() {
 
     Json::Reader reader;
     Json::Value cfg;
 
-    std::ifstream file(filepath);
+    std::ifstream file("config.json");
 
     if (!reader.parse(file, cfg)) {
         std::cout << reader.getFormattedErrorMessages();
@@ -13,7 +13,7 @@ air_config::air_config(std::string filepath) {
     }
 
     // we can assume config file is properly setup at this point.
-    // thanks to check_config.py
+    // thanks to prelaunch_checks.py
 
     auto threads = cfg["THREADS"];
 

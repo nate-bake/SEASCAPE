@@ -14,6 +14,7 @@ python-based educational autopilot system
 - moved all sensitive code into 'core/' folder, added config validator, limited write capabilities on python side.
 - implemented xh/controller vector choices in config, and tried to simplify reads on python side.
 - added IMU calibration struct and logic to air.cpp, config.json, and launch.py.
+- added logger thread and related config settings.
 
 ## TODO
 
@@ -23,13 +24,11 @@ python-based educational autopilot system
     - once i know size of matrix i need to update load_calibration_file() in air.cpp.
   - then we need to finish implementing IMU update correction in InertialSensor.h.
   - once we finish calibration i should remove .bin files and add '/data/calibration' folder to .gitignore.
-  - should we require calibration at all if someone elects to use raw data in the config?
 - look into adding i2c sensors.
 - add our own estimator and controller to air.cpp.
 - maybe break up air.cpp into multiple files to allow more flexibility.
 - test servo loop cuz idk if the rcin and pwm scales are the same.
 - update telemetry thread and maybe add some config settings for it.
-- add logger. synchronized logs probably not feasible. maybe just read vectors in a separate thread.
 - try to anticipate potential issues and reduce the probability that air.cpp process will ever crash.
 - test like every individual piece in different config scenarios.
 

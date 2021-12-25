@@ -1,39 +1,46 @@
 {
   "THREADS": {
+    "LOGGER": {
+      "DESCRIPTION": "Creates a log file when program terminates. Stores values from vectors selected below.",
+      "ENABLED": true,
+      "RATE": 100,
+      "LOG_SENSOR_DATA": true,
+      "LOG_ESTIMATOR_0": true,
+      "LOG_ESTIMATOR_1": true,
+      "LOG_CONTROLLER_0": false,
+      "LOG_CONTROLLER_1": false,
+      "LOG_RCIN_SERVO": false
+    },
     "ESTIMATOR_0": {
       "DESCRIPTION": "Built-in estimator implemented in C++. Updates xh_0 vector.",
       "ENABLED": true,
-      "RATE": 150,
-      "LOG_XH_DATA": true
+      "RATE": 100
     },
 
     "ESTIMATOR_1": {
       "DESCRIPTION": "User-defined estimator implemented in Python. Updates xh_1 vector.",
       "ENABLED": true,
-      "RATE": 150,
-      "LOG_XH_DATA": true
+      "RATE": 100
     },
 
     "CONTROLLER_0": {
       "DESCRIPTION": "Built-in controller implemented in C++. Updates controller_0 vector.",
       "ENABLED": true,
       "RATE": 50,
-      "XH_VECTOR_TO_USE": 0,
-      "LOG_CONTROLLER_DATA": true
+      "XH_VECTOR_TO_USE": 0
     },
 
     "CONTROLLER_1": {
       "DESCRIPTION": "User-defined controller implemented in Python. Updates controller_1 vector.",
       "ENABLED": true,
       "RATE": 50,
-      "XH_VECTOR_TO_USE": 1,
-      "LOG_CONTROLLER_DATA": true
+      "XH_VECTOR_TO_USE": 1
     },
 
     "IMU_ADC": {
       "DESCRIPTION": "Handles sensor reads from IMUs and ADC. Updates y vector.",
       "ENABLED": true,
-      "RATE": 150,
+      "RATE": 100,
       "USE_LSM9DS1": true,
       "USE_MPU9250": true,
       "PRIMARY_IMU": "LSM9DS1",
@@ -251,6 +258,7 @@
     },
     {
       "ID": "cmd",
+      "DESCRIPTION": "Holds values used for waypoint tracking.",
       "KEYS": ["PSI_C", "H_C"]
     }
   ]

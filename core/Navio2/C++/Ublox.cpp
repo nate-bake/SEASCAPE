@@ -195,10 +195,13 @@ int UBXParser::decodeMessage(double* array, std::map<std::string, int>& keys) {
         // data.push_back ((unsigned)((*(message+pos+9) << 24) | (*(message+pos+8) << 16) | (*(message+pos+7) << 8) | (*(message+pos+6))));
         //Longitude
         array[keys["y_GPS_POSN_LON"]] = (*(message + pos + 13) << 24) | (*(message + pos + 12) << 16) | (*(message + pos + 11) << 8) | (*(message + pos + 10));
+        array[keys["y_GPS_POSN_LON"]] /= 10000000;
         //Latitude
         array[keys["y_GPS_POSN_LAT"]] = (*(message + pos + 17) << 24) | (*(message + pos + 16) << 16) | (*(message + pos + 15) << 8) | (*(message + pos + 14));
+        array[keys["y_GPS_POSN_LAT"]] /= 10000000;
         //Height above Ellipsoid
         array[keys["y_GPS_POSN_ALT"]] = (*(message + pos + 21) << 24) | (*(message + pos + 20) << 16) | (*(message + pos + 19) << 8) | (*(message + pos + 18));
+        array[keys["y_GPS_POSN_LAT"]] /= 1000;
         //Height above mean sea level
         // data.push_back ((*(message+pos+25) << 24) | (*(message+pos+24) << 16) | (*(message+pos+23) << 8) | (*(message+pos+22)));
         //Horizontal Accuracy Estateimate
@@ -230,8 +233,11 @@ int UBXParser::decodeMessage(double* array, std::map<std::string, int>& keys) {
     case 274:
         // velned
         array[keys["y_GPS_VEL_N"]] = (*(message + pos + 13) << 24) | (*(message + pos + 12) << 16) | (*(message + pos + 11) << 8) | (*(message + pos + 10));
+        array[keys["y_GPS_VEL_N"]] /= 100;
         array[keys["y_GPS_VEL_E"]] = (*(message + pos + 17) << 24) | (*(message + pos + 16) << 16) | (*(message + pos + 15) << 8) | (*(message + pos + 14));
+        array[keys["y_GPS_VEL_E"]] /= 100;
         array[keys["y_GPS_VEL_D"]] = (*(message + pos + 21) << 24) | (*(message + pos + 20) << 16) | (*(message + pos + 19) << 8) | (*(message + pos + 18));
+        array[keys["y_GPS_VEL_D"]] /= 100;
         break;
 
     default:
