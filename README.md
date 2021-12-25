@@ -27,10 +27,10 @@ Python-based Educational Autopilot System
 - Look into adding I2C sensors.
 - Add our own estimator and controller to `air.cpp`.
 - Maybe break up `air.cpp` into multiple files to allow more flexibility.
-- Test servo loop because I don't know if the rcin and pwm scales are the same.
 - Update telemetry thread and maybe add some config settings for it.
 - Try to anticipate potential issues and reduce the probability that `air.cpp` process will ever crash.
 - Test like every individual piece in different config scenarios.
+  - Especially servo thread since I don't know if RCIN and PWM scales are the same.
 
 ## SETUP / DEPENDENCIES
 
