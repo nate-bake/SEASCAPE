@@ -12,6 +12,8 @@ def estimator_loop(mem: helper.helper, max_sleep: float):
     gps = imu = 0  # used for detecting whether y vector has new data
     while True:
         initial_time = time.time()
+
+        ############################### READ LATEST SENSOR DATA #################################
         [
             GPS_UPDATES,
             IMU_UPDATES,
@@ -24,7 +26,7 @@ def estimator_loop(mem: helper.helper, max_sleep: float):
             IMU_1_MAG_X,
             IMU_1_MAG_Y,
             IMU_1_MAG_Z,
-            IMU_2_AX,  # if you plan to use IMU_2 be sure you have both IMUs enabled in config.json
+            IMU_2_AX,  # if you want to use IMU_2, be sure you have both IMUs enabled in config.json
             IMU_2_AY,
             IMU_2_AZ,
             IMU_2_GYRO_P,
@@ -51,22 +53,36 @@ def estimator_loop(mem: helper.helper, max_sleep: float):
             ADC_CONSUMED,
             ADC_TIME,
         ] = mem.read_y()
+
+        ############################### READ PREVIOUS XH DATA ##################################
+
         [UPDATES, X, Y, Z, VT, ALPHA, BETA, PHI, THETA, PSI, P, Q, R] = mem.read_xh()
-        # =====ESTIMATOR CODE STARTS HERE==================================
-        # Predict step here
-        # Measurement correction step here (depends on which sensors available)
+
+        ############################ CHECK IF SENSOR DATA IS NEW ###############################
+
         if imu == IMU_UPDATES:
-            time.sleep(0.001)
+            time.sleep(0.001)  # wait if no new data
             continue
         imu = IMU_UPDATES
-        print(IMU_1_AX, IMU_2_AX)
         if gps != GPS_UPDATES:
             gps = GPS_UPDATES
-            pass  # do estimation with gps here.
+            new_gps = True
         else:
-            pass  # do estimation without gps here.
-        # write estimated values to the xh array.
-        # ======ESTIMATOR CODE STOPS HERE===================================
+            new_gps = False
+
+        ############################# ESTIMATOR CODE STARTS HERE ###############################
+
+        print(IMU_1_AX, IMU_2_AX)
+        if new_gps:
+            pass  # estimation with gps
+        else:
+            pass  # estaimation without gps
+
+        ############################### PUBLISH NEW XH DATA ##################################
+
         mem.write_xh([UPDATES + 1, X, Y, Z, VT, ALPHA, BETA, PHI, THETA, PSI, P, Q, R])
+
+        ############################ SLEEP TO MAINTAIN FREQUENCY #############################
+
         sleep_time = max_sleep - (time.time() - initial_time)
         time.sleep(max(sleep_time, 0))

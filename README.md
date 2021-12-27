@@ -23,6 +23,7 @@ Python-based Educational Autopilot System
     - Flatten matrix and vector into a list of doubles.
     - Once I know size of matrix I need to update `load_calibration_file()` in `air.cpp`.
   - Then we need to finish implementing IMU update correction in `InertialSensor.h`.
+  - If someone wants to disable IMU calibration in y vector, we probably need to do it in our estimator.
   - Once we finish calibration I should remove `.bin` files and add tell git to ignore them.
 - Look into adding I2C sensors.
 - Add our own estimator and controller to `air.cpp`.

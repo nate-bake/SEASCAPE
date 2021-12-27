@@ -96,6 +96,3 @@ if __name__ == "__main__":
     process.wait()
     print("\nCore process has died.\nShutting down...")
     sys.exit()
-
-    # estimator_1_process.join()
-    # controller_1_process.join()

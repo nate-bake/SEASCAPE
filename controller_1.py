@@ -10,10 +10,15 @@ def controller_loop(mem: helper.helper, max_sleep: float):
     # mem.write_controller() will require a list of PWM values corresponding to each channel.
     # these outputs do not go directly to the servo-rail. they are instead handled by the RCIN_SERVO thread.
 
-    xh_updates = 0
+    xh_updates = 0  # used for detecting whether xh vector has new data
     while True:
         initial_time = time.time()
+
+        ################################## READ LATEST XH DATA ####################################
+
         [UPDATES, X, Y, Z, VT, ALPHA, BETA, PHI, THETA, PSI, P, Q, R] = mem.read_xh()
+
+        ############################# READ PREVIOUS CONTROLLER DATA ###############################
         [
             CHANNEL_0,
             CHANNEL_1,
@@ -30,13 +35,20 @@ def controller_loop(mem: helper.helper, max_sleep: float):
             CHANNEL_12,
             CHANNEL_13,
         ] = mem.read_servo()
+
+        ################################ CHECK IF XH DATA IS NEW #################################
+
         if xh_updates == UPDATES:
-            time.sleep(0.001)
+            time.sleep(0.001)  # wait if no new data
             continue
         xh_updates = UPDATES
-        # ======CONTROLLER CODE STARTS HERE===============================================
+
+        ############################## CONTROLLER CODE STARTS HERE ###############################
+
         # adjust channel values
-        # =======CONTROLLER CODE STOPS HERE ======================================
+
+        ################################ UPDATE CONTROLLER DATA ##################################
+
         mem.write_controller(
             [
                 CHANNEL_0,
@@ -55,5 +67,7 @@ def controller_loop(mem: helper.helper, max_sleep: float):
                 CHANNEL_13,
             ]
         )
+        ############################# SLEEP TO MAINTAIN FREQUENCY ##############################
+
         sleep_time = max_sleep - (time.time() - initial_time)
         time.sleep(max(sleep_time, 0))
