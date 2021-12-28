@@ -15,19 +15,19 @@ Python-based Educational Autopilot System
 - Implemented xh/controller vector choices in config, and tried to simplify reads on Python side.
 - Added IMU calibration struct and logic to `air.cpp`, `config.json`, and `launch.py`.
 - Added logger thread and related config settings.
+- Implmented IMU adjustment to `InertialSensor.h` to apply calibration profile.
+- Added IMU adjustment to built-in estimator in case the user decides not to apply calibration to y vector.
+- Improved IMU-related prelaunch checks.
 
 ## TODO
 
 - IMU calibration
   - Add calibration scripts, save results as binary file.
-    - Flatten matrix and vector into a list of doubles.
-    - Once I know size of matrix I need to update `load_calibration_file()` in `air.cpp`.
-  - Then we need to finish implementing IMU update correction in `InertialSensor.h`.
-  - If someone wants to disable IMU calibration in y vector, we probably need to do it in our estimator.
+    - Flatten vector and matrix into a list of doubles (row-major).
   - Once we finish calibration I should remove `.bin` files and add tell git to ignore them.
 - Look into adding I2C sensors.
 - Add our own estimator and controller to `air.cpp`.
-- Maybe break up `air.cpp` into multiple files to allow more flexibility.
+- Maybe break up `air.cpp` into multiple files. At least estimator and controller should be separate.
 - Update telemetry thread and maybe add some config settings for it.
 - Try to anticipate potential issues and reduce the probability that `air.cpp` process will ever crash.
 - Test like every individual piece in different config scenarios.

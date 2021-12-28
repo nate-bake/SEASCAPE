@@ -34,11 +34,18 @@ air_config::air_config() {
     IMU_LOOP_ENABLED = threads["IMU_ADC"]["ENABLED"].asBool();
     LSM_ENABLED = threads["IMU_ADC"]["USE_LSM9DS1"].asBool();
     MPU_ENABLED = threads["IMU_ADC"]["USE_MPU9250"].asBool();
-    PRIMARY_IMU = threads["IMU_ADC"]["PRIMARY_IMU"].asString();
     USE_IMU_CALIBRATION = threads["IMU_ADC"]["APPLY_CALIBRATION_PROFILE"].asBool();
     ADC_ENABLED = threads["IMU_ADC"]["USE_ADC"].asBool();
     GPS_ENABLED = threads["GPS_BAROMETER"]["USE_GPS"].asBool();
     MS5611_ENABLED = threads["GPS_BAROMETER"]["USE_MS5611"].asBool();
+    PRIMARY_IMU = threads["IMU_ADC"]["PRIMARY_IMU"].asString();
+    if (PRIMARY_IMU != "LSM9DS1" && PRIMARY_IMU != "MPU9250") {
+        if (!LSM_ENABLED && MPU_ENABLED) {
+            PRIMARY_IMU = "MPU9250";
+        } else {
+            PRIMARY_IMU = "LSM9DS1";
+        }
+    }
 
     PWM_FREQUENCY = threads["RCIN_SERVO"]["PWM_FREQUENCY"].asInt();
     MIN_PWM_OUT = threads["RCIN_SERVO"]["MIN_PWM_OUT"].asInt();

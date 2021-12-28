@@ -76,7 +76,7 @@ def estimator_loop(mem: helper.helper, max_sleep: float):
         if new_gps:
             pass  # estimation with gps
         else:
-            pass  # estaimation without gps
+            pass  # estimation without gps
 
         ############################### PUBLISH NEW XH DATA ##################################
 

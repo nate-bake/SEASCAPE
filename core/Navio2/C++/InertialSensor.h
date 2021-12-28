@@ -2,8 +2,8 @@
 #define _INERTIAL_SENSOR_H
 
 struct imu_calibration_profile {
-    double* matrix;
     double* offsets;
+    double* matrix;
 };
 
 class InertialSensor {
@@ -25,7 +25,9 @@ public:
         _my -= _calibration_profile->offsets[7];
         _mz -= _calibration_profile->offsets[8];
 
-        // DO SOMETHING WITH MATRIX IDK HOW THIS STUFF WORKS
+        _mx = _mx * _calibration_profile->matrix[0] + _my * _calibration_profile->matrix[3] + _mz * _calibration_profile->matrix[6];
+        _my = _mx * _calibration_profile->matrix[1] + _my * _calibration_profile->matrix[4] + _mz * _calibration_profile->matrix[7];
+        _mz = _mx * _calibration_profile->matrix[2] + _my * _calibration_profile->matrix[5] + _mz * _calibration_profile->matrix[8];
 
         return;
     };

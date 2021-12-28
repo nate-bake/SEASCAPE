@@ -180,10 +180,50 @@ def check_all():
             if not ask_proceed():
                 return None, None
 
-    ############################### CHECK IMU CALIBRATION FILES ##############################
+    ################################### CHECK IMU ENABLED ####################################
 
     imu_cfg = cfg["THREADS"]["IMU_ADC"]
-    if imu_cfg["ENABLED"] and imu_cfg["APPLY_CALIBRATION_PROFILE"]:
+    if not imu_cfg["ENABLED"]:
+        print(
+            f"CONFIG WARNING: IMU_ADC thread is disabled.\nHaving the no IMU values will likely yield dangerously innacurate estimations."
+        )
+        if not ask_proceed():
+            return None, None
+    elif not (imu_cfg["USE_LSM9DS1"] or imu_cfg["USE_MPU9250"]):
+        print(
+            f"CONFIG WARNING: Both IMU sensors are disabled.\nHaving the no IMU values will likely yield dangerously innacurate estimations."
+        )
+        if not ask_proceed():
+            return None, None
+    elif imu_cfg["PRIMARY_IMU"] == "LSM9DS1" and not imu_cfg["USE_LSM9DS1"]:
+        print(f"CONFIG WARNING: LSM9DS1 is listed as PRIMARY_IMU but it is disabled.")
+        if imu_cfg["USE_MPU9250"]:
+            imu_cfg["PRIMARY_IMU"] = "MPU9250"
+        print("This value will be switched to MPU9250.")
+        if not ask_proceed():
+            return None, None
+    elif imu_cfg["PRIMARY_IMU"] == "MPU9250" and not imu_cfg["USE_MPU9250"]:
+        print(f"CONFIG WARNING: MPU9250 is listed as PRIMARY_IMU but it is disabled.")
+        if imu_cfg["USE_LSM9DS1"]:
+            imu_cfg["PRIMARY_IMU"] = "LSM9DS1"
+        print("This value will be switched to LSM9DS1.")
+        if not ask_proceed():
+            return None, None
+    elif not imu_cfg["PRIMARY_IMU"] in ["LSM9DS1", "MPU9250"]:
+        new_value = "LSM9DS1"
+        if imu_cfg["USE_MPU9250"] and not imu_cfg["USE_LSM9DS1"]:
+            new_value = "MPU9250"
+        print(
+            f"CONFIG WARNING: Invalid PRIMARY_IMU.\nThis value will default to {new_value}."
+        )
+        if not ask_proceed():
+            return None, None
+        else:
+            imu_cfg["PRIMARY_IMU"] = new_value
+
+    ############################### CHECK IMU CALIBRATION FILES ##############################
+
+    if cfg["THREADS"]["ESTIMATOR_0"]["ENABLED"] or imu_cfg["APPLY_CALIBRATION_PROFILE"]:
         if imu_cfg["USE_LSM9DS1"]:
             if not os.path.exists("data/calibration/LSM9DS1_calibration.bin"):
                 print(
