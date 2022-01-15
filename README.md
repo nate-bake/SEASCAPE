@@ -38,5 +38,7 @@ Python-based Educational Autopilot System
 ## INSTALLATION / EXECUTION
 
 - `sudo python3 launch.py` should hopefully take care of everything.
-  - This will install: `libjsoncpp-dev` apt package, `sysv_ipc` pip package, mavlink submodule.
+  - The `libjsoncpp-dev` apt package will be installed.
+  - The `sysv_ipc` pip package will be installed.
+  - The mavlink submodule will be cloned if not already.
 - Note that some existing Navio2 libraries have been modified. Hence the Emlid submodule is not included.
