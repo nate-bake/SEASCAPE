@@ -35,3 +35,15 @@
 #define SHMSIZE (4096)
 
 #include "air_config.h"
+
+uint64_t current_time_microseconds();
+int hertz_to_microseconds(double hertz);
+int load_calibration_file(std::string sensor, struct imu_calibration_profile* calibration_profile);
+
+struct thread_struct {
+    double* array;
+    const air_config* cfg;
+};
+
+void* estimation_loop(void* arguments);
+void* control_loop(void* arguments);

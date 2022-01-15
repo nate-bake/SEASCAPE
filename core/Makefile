@@ -1,15 +1,21 @@
 default: clean_upper air
 
-air: air.o Navio2/C++/Navio.o serial_port.o air.o air_config.o
-	g++ air.o Navio2/C++/Navio.o serial_port.o air_config.o -o air -std=c++11 -pthread -Wno-psabi -ljsoncpp
+air: air.o estimator.o controller.o air_config.o serial_port.o Navio2/C++/Navio.o
+	g++ air.o estimator.o controller.o air_config.o serial_port.o Navio2/C++/Navio.o -o air -std=c++11 -pthread -Wno-psabi -ljsoncpp
 
 air.o: air.h air.cpp
 	g++ -c air.cpp -std=c++11 -Wno-psabi -pthread -Wno-psabi -ljsoncpp
 
-air_config.o: air_config.h
+estimator.o: estimator_0.cpp
+	g++ -c estimator_0.cpp -std=c++11 -Wno-psabi -pthread -Wno-psabi -ljsoncpp
+
+controller.o: controller_0.cpp
+	g++ -c controller_0.cpp -std=c++11 -Wno-psabi -pthread -Wno-psabi -ljsoncpp
+
+air_config.o: air_config.h air_config.cpp
 	g++ -c air_config.cpp -std=c++11
 
-serial_port.o: serial_port.h
+serial_port.o: serial_port.h serial_port.cpp
 	g++ -c serial_port.cpp -std=c++11
 
 Navio2/C++/Navio.o:
