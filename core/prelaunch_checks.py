@@ -9,37 +9,38 @@ from dateutil.relativedelta import relativedelta
 def check_dependencies():
     cache = apt.Cache()
     if not cache["libjsoncpp-dev"].is_installed:
-        print("C++ library libjsoncpp-dev was not found.\nAttempting to install...")
+        print("C++ library libjsoncpp-dev was not found.\nAttempting to install...\n")
         os.system("sudo apt-get install libjsoncpp-dev")
+        cache = apt.Cache()
         if not cache["libjsoncpp-dev"].is_installed:
-            print("Installation failed. Launch canceled.")
+            print("\nInstallation failed. Launch canceled.")
             sys.exit()
         else:
-            print("Installation successful.")
+            print("\nInstallation successful.\n")
 
     try:
         import sysv_ipc
     except ImportError as e:
-        print("Python sysv_ipc module was not found.\nAttempting to install...")
+        print("Python sysv_ipc module was not found.\nAttempting to install...\n")
         os.system("sudo pip3 install sysv_ipc")
         try:
             import sysv_ipc
 
-            print("Installation successful.")
+            print("")
         except ImportError as e:
-            print("Installation failed. Launch canceled.")
+            print("\nInstallation failed. Launch canceled.")
             sys.exit()
 
     if not os.path.exists("core/mavlink/common/"):
         print(
-            "Seems like the mavlink submodule is not present.\nAttempting to clone..."
+            "Seems like the mavlink submodule is not present.\nAttempting to clone...\n"
         )
         os.system("git submodule update --init")
         if not os.path.exists("core/mavlink/common/"):
-            print("Clone failed. Launch canceled.")
+            print("\nClone failed. Launch canceled.")
             sys.exit()
         else:
-            print("Clone successful.")
+            print("\nClone successful.\n")
 
 
 def check_core():

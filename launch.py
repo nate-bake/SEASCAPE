@@ -2,7 +2,6 @@ import sys
 import time
 import subprocess
 import multiprocessing
-import sysv_ipc as ipc
 from core import prelaunch_checks
 from core import shared_mem_helper_estimator_1
 from core import shared_mem_helper_controller_1
@@ -43,6 +42,8 @@ if __name__ == "__main__":
     print(f"Core threads have launched.\t\t[PID:{process.pid}]")
 
     time.sleep(3)
+
+    import sysv_ipc as ipc
 
     ftok_path = "core/air.h"
     key = ipc.ftok(ftok_path, ord("~"), silence_warning=True)
