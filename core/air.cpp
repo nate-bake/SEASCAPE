@@ -338,7 +338,7 @@ void* telemetry_loop(void* arguments) {
         mavlink_message_t msg0;
         int packed0 = mavlink_msg_heartbeat_pack(1, 255, &msg0, 1, 0, 4, 0, 0);
         int sent0 = port->write_message(msg0);
-        // these values i am sending may not be correct but i just want to verify that mission planner displays them.
+        // the transmitted values may not be correct but i just want to verify that mission planner displays them.
         mavlink_message_t msg30;
         int packed30 = mavlink_msg_attitude_pack(1, 255, &msg30, t, (float)array[keys["y_IMU_1_AX"]] / 20 * M_PI, (float)array[keys["y_IMU_1_AY"]] / 20 * M_PI, 0, 0, 0, 0);
         int sent30 = port->write_message(msg30);
@@ -346,7 +346,7 @@ void* telemetry_loop(void* arguments) {
         int packed33 = mavlink_msg_global_position_int_pack(1, 255, &msg33, t, 0, 0, 0, -1 * array[keys["xh_0_Z"]], array[keys["y_GPS_VEL_N"]], array[keys["y_GPS_VEL_E"]], array[keys["y_GPS_VEL_D"]], 0);
         int sent33 = port->write_message(msg33);
         mavlink_message_t msg24;
-        int packed24 = mavlink_msg_gps_raw_int_pack(1, 255, &msg24, t, array[keys["y_GPS_STATUS"]], (int)array[keys["y_GPS_POSN_LAT"]], (int)array[keys["y_GPS_POSN_LON"]], (int)array[keys["y_GPS_POSN_ALT"]], 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+        int packed24 = mavlink_msg_gps_raw_int_pack(1, 255, &msg24, t, array[keys["y_GPS_STATUS"]], (int)(array[keys["y_GPS_POSN_LAT"]]), (int)(array[keys["y_GPS_POSN_LON"]]), (int)array[keys["y_GPS_POSN_ALT"]], 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
         int sent24 = port->write_message(msg24);
         // SYSTEM STATUS MSG #1 for battery
         // HUD MSG #74 for heading and speed
@@ -391,7 +391,7 @@ void* estimation_loop(void* arguments) {
         double mz = array[keys["y_IMU_1_MAG_Z"]];
 
         if (!cfg->USE_IMU_CALIBRATION && calibration_profile.offsets != nullptr) {
-            // apply calibration here rather than at sensor read.
+            // must apply calibration here rather than at sensor read.
             ax -= calibration_profile.offsets[0];
             ay -= calibration_profile.offsets[1];
             az -= calibration_profile.offsets[2];
@@ -485,7 +485,14 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 
-    memset(array, 0, SHMSIZE); // CLEAR SHARED VECTOR JUST IN CASE
+    memset(array, 0, SHMSIZE); // clear shared vector just in case
+
+    for (int i = 0; i < 14; i++) { // initialize all pwm channels to 1500
+        array[cfg.keys.at("rcin_CHANNEL_" + std::to_string(i))] = 1500.0;
+        array[cfg.keys.at("controller_0_CHANNEL_" + std::to_string(i))] = 1500.0;
+        array[cfg.keys.at("controller_1_CHANNEL_" + std::to_string(i))] = 1500.0;
+        array[cfg.keys.at("servo_CHANNEL_" + std::to_string(i))] = 1500.0;
+    }
 
     pthread_t imu_thread;
     pthread_t gps_baro_thread;

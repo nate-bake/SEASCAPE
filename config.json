@@ -3,13 +3,13 @@
     "LOGGER": {
       "DESCRIPTION": "Creates a log file when program terminates. Stores values from vectors selected below.",
       "ENABLED": true,
-      "RATE": 100,
+      "RATE": 50,
       "LOG_SENSOR_DATA": true,
       "LOG_ESTIMATOR_0": true,
       "LOG_ESTIMATOR_1": true,
       "LOG_CONTROLLER_0": false,
       "LOG_CONTROLLER_1": false,
-      "LOG_RCIN_SERVO": false
+      "LOG_RCIN_SERVO": true
     },
     "ESTIMATOR_0": {
       "DESCRIPTION": "Built-in estimator implemented in C++. Updates xh_0 vector.",
@@ -92,6 +92,7 @@
   },
 
   "WARNING": "!!!!!!!!!!!!!!! DO NOT EDIT BELOW THIS POINT UNLESS YOU REALLY KNOW WHAT YOU ARE DOING !!!!!!!!!!!!!!!!!!",
+  "NOTE": "!!!!!!!!!! YOU MAY ADD ADDITIONAL KEYS, BUT BE SURE NOT TO REMOVE/RENAME ANY EXISTING VECTORS/KEYS !!!!!!!!!!",
 
   "VECTORS": [
     {

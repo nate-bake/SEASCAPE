@@ -1,4 +1,4 @@
-import os, sys
+import sys
 import time
 import subprocess
 import multiprocessing
@@ -32,21 +32,12 @@ def get_log_keys():
 if __name__ == "__main__":
 
     print()
-    if not os.path.exists("core/air"):
-        print(
-            "Looks like the core files have not been compiled yet.\nAttempting to compile...\n"
-        )
-        os.system("make -s -C core/")
-        if not os.path.exists("core/air"):
-            print("Build failed. Launch canceled.")
-            sys.exit()
-        else:
-            print("Compilation successful.\n")
-            time.sleep(1)
 
-    cfg, keys = prelaunch_checks.check_all()
-    if keys is None:
-        sys.exit()
+    prelaunch_checks.check_dependencies()
+    time.sleep(1)
+    prelaunch_checks.check_core()
+    time.sleep(1)
+    cfg, keys = prelaunch_checks.check_config()
 
     process = subprocess.Popen(["sudo", "./core/air"])
     print(f"Core threads have launched.\t\t[PID:{process.pid}]")
@@ -54,11 +45,9 @@ if __name__ == "__main__":
     time.sleep(3)
 
     ftok_path = "core/air.h"
-    key = ipc.ftok(
-        ftok_path, ord("~"), silence_warning=True
-    )  # refer to shared memory created by core/air
+    key = ipc.ftok(ftok_path, ord("~"), silence_warning=True)
     shm = ipc.SharedMemory(key, 0, 0)
-
+    # attach to shared memory created by core/air
     shm.attach(0, 0)
 
     if cfg["THREADS"]["LOGGER"]["ENABLED"]:
