@@ -153,6 +153,8 @@ def verify_thead_rates(cfg):
     ]:
         t = threads[name]
         try:
+            if not isinstance(t["ENABLED"], bool):
+                raise TypeError
             if t["RATE"] <= 0.0 and t["ENABLED"]:
                 print(
                     f"CONFIG ERROR: Invalid rate specified for {name} thread. Rate must be greater than 0 hertz.\nIf you wish to disable the thread, set ENABLED to false.\n"

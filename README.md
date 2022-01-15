@@ -18,6 +18,7 @@ Python-based Educational Autopilot System
 - Implmented IMU adjustment to `InertialSensor.h` to apply calibration profile.
 - Added IMU adjustment to built-in estimator in case the user decides not to apply calibration to y vector.
 - Improved IMU-related prelaunch checks.
+- Added dependency installation to launch routine.
 
 ## TODO
 
@@ -32,14 +33,10 @@ Python-based Educational Autopilot System
 - Try to anticipate potential issues and reduce the probability that `air.cpp` process will ever crash.
 - Test like every individual piece in different config scenarios.
   - Especially servo thread since I don't know if RCIN and PWM scales are the same.
+- Documentation overview and config setting explanations.
 
-## SETUP / DEPENDENCIES
-
-- Install JSONCPP on Navio so that C++ can read config file. `sudo apt-get install libjsoncpp-dev`
-- Install Python IPC package on Navio so Python can access shared memory. `sudo pip3 install sysv_ipc`
-- Note that some of the Navio2 C++ libraries have been modified, hence the Emlid submodule is not included.
-- Be sure to actually clone the mavlink submodule thingy. `git submodule update --init`
-
-## COMPILE / RUN
+## INSTALLATION / EXECUTION
 
 - `sudo python3 launch.py` should hopefully take care of everything.
+  - This will install: `libjsoncpp-dev` apt package, `sysv_ipc` pip package, mavlink submodule.
+- Note that some existing Navio2 libraries have been modified. Hence the Emlid submodule is not included.
