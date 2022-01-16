@@ -25,7 +25,27 @@ def get_log_keys():
     if cfg["THREADS"]["LOGGER"]["LOG_RCIN_SERVO"]:
         vec_list.append("rcin_")
         vec_list.append("servo_")
-    return {key: keys[key] for key in keys.keys() if key.startswith(tuple(vec_list))}
+    log_keys = {
+        key: keys[key] for key in keys.keys() if key.startswith(tuple(vec_list))
+    }
+    for k in log_keys.keys():
+        if k.endswith(
+            "CHANNEL_" + str(cfg["THREADS"]["RCIN_SERVO"]["THROTTLE_CHANNEL"])
+        ):
+            log_keys[k.split("CHANNEL")[0] + " [THROTTLE]"] = log_keys.pop(k)
+        if k.endswith(
+            "CHANNEL_" + str(cfg["THREADS"]["RCIN_SERVO"]["ELEVATOR_CHANNEL"])
+        ):
+            log_keys[k.split("CHANNEL")[0] + " [ELEVATOR]"] = log_keys.pop(k)
+        if k.endswith(
+            "CHANNEL_" + str(cfg["THREADS"]["RCIN_SERVO"]["AILERON_CHANNEL"])
+        ):
+            log_keys[k.split("CHANNEL")[0] + " [AILERON]"] = log_keys.pop(k)
+        if k.endswith("CHANNEL_" + str(cfg["THREADS"]["RCIN_SERVO"]["RUDDER_CHANNEL"])):
+            log_keys[k.split("CHANNEL")[0] + " [RUDDER]"] = log_keys.pop(k)
+        if k.endswith("CHANNEL_" + str(cfg["THREADS"]["RCIN_SERVO"]["FLAPS_CHANNEL"])):
+            log_keys[k.split("CHANNEL")[0] + " [FLAPS]"] = log_keys.pop(k)
+    return log_keys
 
 
 def get_servo_channels():
@@ -85,7 +105,9 @@ if __name__ == "__main__":
 
         con1_xh_index = cfg["THREADS"]["CONTROLLER_1"]["XH_VECTOR_TO_USE"]
         channels = get_servo_channels()
-        mem_con1 = shared_mem_helper_controller_1.helper(shm, keys, con1_xh_index, channels)
+        mem_con1 = shared_mem_helper_controller_1.helper(
+            shm, keys, con1_xh_index, channels
+        )
         max_sleep_con1 = 1.0 / cfg["THREADS"]["CONTROLLER_1"]["RATE"]
         controller_1_process = multiprocessing.Process(
             target=controller_1.controller_loop, args=(mem_con1, max_sleep_con1)

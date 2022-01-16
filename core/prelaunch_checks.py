@@ -76,6 +76,7 @@ def check_config():
     check_vector_dependencies(cfg)
     check_imu_enabled(cfg)
     check_imu_calibration(cfg)
+    check_mode_ranges(cfg)
     check_servo_channels(cfg)
     return get_keys(cfg)
 
@@ -434,9 +435,9 @@ def check_mode_ranges(cfg):
     r = cfg["THREADS"]["RCIN_SERVO"]["FLIGHT_MODES"]
 
     if (
-        r["MANUAL_RANGE"]["LOW"] < r["MANUAL_RANGE"]["HIGH"]
-        or r["SEMI_AUTO_RANGE"]["LOW"] < r["SEMI_AUTO_RANGE"]["HIGH"]
-        or r["AUTO_RANGE"]["LOW"] < r["AUTO_RANGE"]["HIGH"]
+        r["MANUAL_RANGE"]["LOW"] > r["MANUAL_RANGE"]["HIGH"]
+        or r["SEMI-AUTO_RANGE"]["LOW"] > r["SEMI-AUTO_RANGE"]["HIGH"]
+        or r["AUTO_RANGE"]["LOW"] > r["AUTO_RANGE"]["HIGH"]
     ):
         print(
             "CONFIG ERROR: An invalid flight mode range was detected. Upper limit cannot be larger than lower limit."
@@ -445,7 +446,7 @@ def check_mode_ranges(cfg):
         sys.exit()
 
     manual = set(range(r["MANUAL_RANGE"]["LOW"], r["MANUAL_RANGE"]["HIGH"]))
-    semi = set(range(r["SEMI_AUTO_RANGE"]["LOW"], r["SEMI_AUTO_RANGE"]["HIGH"]))
+    semi = set(range(r["SEMI-AUTO_RANGE"]["LOW"], r["SEMI-AUTO_RANGE"]["HIGH"]))
     auto = set(range(r["AUTO_RANGE"]["LOW"], r["AUTO_RANGE"]["HIGH"]))
 
     if (
@@ -453,7 +454,7 @@ def check_mode_ranges(cfg):
         or manual.intersection(auto)
         or semi.intersection(auto)
     ):
-        print("CONFIG ERROR: An overlap was detected between fligh mode ranges.")
+        print("CONFIG ERROR: An overlap was detected between flight mode ranges.")
         print(
             "Check the RCIN_SERVO section of config.json, and ensure all flight mode ranges are distinct.\n"
         )
