@@ -1,72 +1,42 @@
 import time
 import numpy as np
-from core import shared_mem_helper_controller_1 as helper
+from core import shared_mem_helper_controller_1 as shm
 
 
-def controller_loop(mem: helper.helper, max_sleep: float):
+def controller_loop(mem: shm.helper, max_sleep: float):
     # mem object is defined in 'core/shared_mem_helper_controller_1.py'
     # mem.read_xh() will return a list of all values from the xh vector specified in config.json
-    # mem.read_servo() will return a list of current PWM values for each servo-rail channel.
-    # mem.write_controller() will require a list of PWM values corresponding to each channel.
-    # these outputs do not go directly to the servo-rail. they are instead handled by the RCIN_SERVO thread.
+    # mem.read_rcin() will update the object's list of current RC inputs from each channel.
+    # ---- these values can be addressed by channel, such as mem.rcin[3]
+    # ---- or by channel standard channel names, such as mem.rcin.throttle or mem.rcin.flaps
+    # mem.read_servo() will update the object's list of current PWM values for each servo-rail channel.
+    # ---- these values can be addressed by channel, such as mem.servos[3]
+    # ---- or by channel standard channel names, such as mem.servos.throttle or mem.servos.rudder
+    # mem.write_controller_1() will apply the modified PWM values to the controller's output vector.
+    # ---- these outputs do not go directly to the servo-rail. they are instead handled by the RCIN_SERVO thread.
 
-    xh_updates = 0  # used for detecting whether xh vector has new data
     while True:
         initial_time = time.time()
 
-        ################################## READ LATEST XH DATA ####################################
+        ################################### READ LATEST DATA #####################################
 
-        [UPDATES, X, Y, Z, VT, ALPHA, BETA, PHI, THETA, PSI, P, Q, R] = mem.read_xh()
-
-        ############################# READ PREVIOUS CONTROLLER DATA ###############################
-        [
-            CHANNEL_0,
-            CHANNEL_1,
-            CHANNEL_2,
-            CHANNEL_3,
-            CHANNEL_4,
-            CHANNEL_5,
-            CHANNEL_6,
-            CHANNEL_7,
-            CHANNEL_8,
-            CHANNEL_9,
-            CHANNEL_10,
-            CHANNEL_11,
-            CHANNEL_12,
-            CHANNEL_13,
-        ] = mem.read_servo()
-
-        ################################ CHECK IF XH DATA IS NEW #################################
-
-        if xh_updates == UPDATES:
-            time.sleep(0.001)  # wait if no new data
-            continue
-        xh_updates = UPDATES
+        [X, Y, Z, VT, ALPHA, BETA, PHI, THETA, PSI, P, Q, R] = mem.read_xh()
+        mem.read_rcin()
+        mem.read_servos()
 
         ############################## CONTROLLER CODE STARTS HERE ###############################
 
         # adjust channel values
+        mem.servos.throttle = mem.rcin.throttle
+        mem.servos.flaps = mem.rcin.flaps
+
+        mem.servos.aileron += 4
+        mem.servos[8] -= 4
 
         ################################ UPDATE CONTROLLER DATA ##################################
 
-        mem.write_controller(
-            [
-                CHANNEL_0,
-                CHANNEL_1,
-                CHANNEL_2,
-                CHANNEL_3,
-                CHANNEL_4,
-                CHANNEL_5,
-                CHANNEL_6,
-                CHANNEL_7,
-                CHANNEL_8,
-                CHANNEL_9,
-                CHANNEL_10,
-                CHANNEL_11,
-                CHANNEL_12,
-                CHANNEL_13,
-            ]
-        )
+        mem.write_controller_1()
+
         ############################# SLEEP TO MAINTAIN FREQUENCY ##############################
 
         sleep_time = max_sleep - (time.time() - initial_time)

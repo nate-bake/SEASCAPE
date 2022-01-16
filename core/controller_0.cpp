@@ -16,13 +16,17 @@ void* control_loop(void* arguments) {
             continue;
         }
         updates = array[keys[xh_vec + "UPDATES"]];
-        // manual passthrough function
-        array[keys["controller_0_CHANNEL_0"]] = array[keys["rcin_CHANNEL_0"]];
-        array[keys["controller_0_CHANNEL_1"]] = array[keys["rcin_CHANNEL_1"]];
-        array[keys["controller_0_CHANNEL_2"]] = array[keys["rcin_CHANNEL_2"]];
-        array[keys["controller_0_CHANNEL_3"]] = array[keys["rcin_CHANNEL_3"]];
-        array[keys["controller_0_CHANNEL_4"]] = array[keys["rcin_CHANNEL_4"]];
-        array[keys["controller_0_CHANNEL_5"]] = array[keys["rcin_CHANNEL_5"]];
+
+        ////////////////////////////////////////////////////////////////
+
+        array[keys["controller_0_THROTTLE"]] = array[keys["rcin_THROTTLE"]];
+        array[keys["controller_0_ELEVATOR"]] = array[keys["rcin_ELEVATOR"]];
+        array[keys["controller_0_AILERON"]] = array[keys["rcin_AILERON"]];
+        array[keys["controller_0_FLAPS"]] = array[keys["rcin_FLAPS"]];
+        array[keys["controller_0_RUDDER"]] = array[keys["rcin_RUDDER"]];
+
+        ////////////////////////////////////////////////////////////////
+
         now = current_time_microseconds();
         int sleep_time = (int)(max_sleep - (now - start_time));
         usleep(std::max(sleep_time, 0));

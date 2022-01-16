@@ -16,27 +16,23 @@
       "ENABLED": true,
       "RATE": 100
     },
-
     "ESTIMATOR_1": {
       "DESCRIPTION": "User-defined estimator implemented in Python. Updates xh_1 vector.",
       "ENABLED": true,
       "RATE": 100
     },
-
     "CONTROLLER_0": {
       "DESCRIPTION": "Built-in controller implemented in C++. Updates controller_0 vector.",
       "ENABLED": true,
       "RATE": 50,
       "XH_VECTOR_TO_USE": 0
     },
-
     "CONTROLLER_1": {
       "DESCRIPTION": "User-defined controller implemented in Python. Updates controller_1 vector.",
       "ENABLED": true,
       "RATE": 50,
       "XH_VECTOR_TO_USE": 1
     },
-
     "IMU_ADC": {
       "DESCRIPTION": "Handles sensor reads from IMUs and ADC. Updates y vector.",
       "ENABLED": true,
@@ -47,7 +43,6 @@
       "APPLY_CALIBRATION_PROFILE": true,
       "USE_ADC": true
     },
-
     "GPS_BAROMETER": {
       "DESCRIPTION": "Handles sensor reads from the connected GPS and onboard barometer. Updates y vector.",
       "ENABLED": true,
@@ -55,52 +50,54 @@
       "USE_GPS": true,
       "USE_MS5611": true
     },
-
     "RCIN_SERVO": {
       "DESCRIPTION": "Handles reads from RC transmitter and sets servo-rail PWM values. Updates rcin and servo vectors.",
       "ENABLED": true,
       "RATE": 50,
       "PWM_FREQUENCY": 50,
       "CONTROLLER_VECTOR_TO_USE": 0,
+      "THROTTLE_CHANNEL": 0,
+      "AILERON_CHANNEL": 1,
       "ELEVATOR_CHANNEL": 2,
-      "AILERON_CHANNEL": 3,
+      "RUDDER_CHANNEL": 3,
+      "FLAPS_CHANNEL": 5,
       "FLIGHT_MODES": {
         "MODE_CHANNEL": 4,
+        "NOTE": "Ranges include the lower value, but exclude the upper value.",
         "MANUAL_RANGE": {
           "LOW": 750,
           "HIGH": 1250
         },
         "SEMI-AUTO_RANGE": {
-          "LOW": 1251,
-          "HIGH": 1750
+          "LOW": 1250,
+          "HIGH": 1750,
+          "DEADZONE": 50
         },
-        "SEMI-AUTO_DEADZONE": 50,
         "AUTO_RANGE": {
-          "LOW": 1751,
+          "LOW": 1750,
           "HIGH": 2250
         }
       },
-      "MIN_PWM_OUT": 1250,
-      "MAX_PWM_OUT": 1750
+      "MIN_THROTTLE": 0,
+      "MAX_THROTTLE": 1750,
+      "MIN_SERVO": 1250,
+      "MAX_SERVO": 1750
     },
-
     "TELEMETRY": {
       "DESCRIPTION": "Sends basic Mavlink messages via radio connected to UART port.",
       "ENABLED": false,
       "RATE": 1
     }
   },
-
   "WARNING": "!!!!!!!!!!!!!!! DO NOT EDIT BELOW THIS POINT UNLESS YOU REALLY KNOW WHAT YOU ARE DOING !!!!!!!!!!!!!!!!!!",
   "NOTE": "!!!!!!!!!! YOU MAY ADD ADDITIONAL KEYS, BUT BE SURE NOT TO REMOVE/RENAME ANY EXISTING VECTORS/KEYS !!!!!!!!!!",
-
   "VECTORS": [
     {
       "ID": "y",
       "DESCRIPTION": "Holds values from available sensors to be read by estimators.",
       "KEYS": [
-        "GPS_UPDATES",
         "IMU_UPDATES",
+        "GPS_UPDATES",
         "IMU_1_AX",
         "IMU_1_AY",
         "IMU_1_AZ",
@@ -260,7 +257,10 @@
     {
       "ID": "cmd",
       "DESCRIPTION": "Holds values used for waypoint tracking.",
-      "KEYS": ["PSI_C", "H_C"]
+      "KEYS": [
+        "PSI_C",
+        "H_C"
+      ]
     }
   ]
 }

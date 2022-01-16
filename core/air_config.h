@@ -1,6 +1,7 @@
 #pragma once
 
-#include "air.h"
+#include <map>
+#include <string>
 
 class air_config {
 
@@ -29,11 +30,16 @@ public:
     std::string PRIMARY_IMU;
     bool USE_IMU_CALIBRATION;
 
-    int PWM_FREQUENCY;
-    int MIN_PWM_OUT;
-    int MAX_PWM_OUT;
-    int ELEVATOR_CHANNEL;
+    float PWM_FREQUENCY;
+    int MIN_THROTTLE;
+    int MAX_THROTTLE;
+    int MIN_SERVO;
+    int MAX_SERVO;
+    int THROTTLE_CHANNEL;
     int AILERON_CHANNEL;
+    int ELEVATOR_CHANNEL;
+    int RUDDER_CHANNEL;
+    int FLAPS_CHANNEL;
     int FLIGHT_MODE_CHANNEL;
     int MANUAL_MODE_MIN;
     int MANUAL_MODE_MAX;

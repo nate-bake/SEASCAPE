@@ -9,14 +9,12 @@ def estimator_loop(mem: helper.helper, max_sleep: float):
     # mem.read_xh() will return a list of all values defined in the xh_1 vector in config.json
     # mem.write_xh() will require a list of all values defined in the xh_1 vector in config.json
 
-    gps = imu = 0  # used for detecting whether y vector has new data
     while True:
         initial_time = time.time()
 
         ############################### READ LATEST SENSOR DATA #################################
         [
-            GPS_UPDATES,
-            IMU_UPDATES,
+            NEW_GPS,
             IMU_1_AX,
             IMU_1_AY,
             IMU_1_AZ,
@@ -56,31 +54,19 @@ def estimator_loop(mem: helper.helper, max_sleep: float):
 
         ############################### READ PREVIOUS XH DATA ##################################
 
-        [UPDATES, X, Y, Z, VT, ALPHA, BETA, PHI, THETA, PSI, P, Q, R] = mem.read_xh()
-
-        ############################ CHECK IF SENSOR DATA IS NEW ###############################
-
-        if imu == IMU_UPDATES:
-            time.sleep(0.001)  # wait if no new data
-            continue
-        imu = IMU_UPDATES
-        if gps != GPS_UPDATES:
-            gps = GPS_UPDATES
-            new_gps = True
-        else:
-            new_gps = False
+        [X, Y, Z, VT, ALPHA, BETA, PHI, THETA, PSI, P, Q, R] = mem.read_xh()
 
         ############################# ESTIMATOR CODE STARTS HERE ###############################
 
-        print(IMU_1_AX, IMU_2_AX)
-        if new_gps:
+        # print(IMU_1_AX, IMU_2_AX)
+        if NEW_GPS:
             pass  # estimation with gps
         else:
             pass  # estimation without gps
 
         ############################### PUBLISH NEW XH DATA ##################################
 
-        mem.write_xh([UPDATES + 1, X, Y, Z, VT, ALPHA, BETA, PHI, THETA, PSI, P, Q, R])
+        mem.write_xh([X, Y, Z, VT, ALPHA, BETA, PHI, THETA, PSI, P, Q, R])
 
         ############################ SLEEP TO MAINTAIN FREQUENCY #############################
 

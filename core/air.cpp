@@ -8,8 +8,12 @@ int hertz_to_microseconds(double hertz) {
     return (int)(1000000 / hertz);
 }
 
-float clip_pwm(const air_config* cfg, int pwm) {
-    return (float)(std::max(cfg->MIN_PWM_OUT, std::min(pwm, cfg->MAX_PWM_OUT)));
+float clip_throttle(const air_config* cfg, int pwm) {
+    return (float)(std::max(cfg->MIN_THROTTLE, std::min(pwm, cfg->MAX_THROTTLE)));
+}
+
+float clip_servo(const air_config* cfg, int pwm) {
+    return (float)(std::max(cfg->MIN_SERVO, std::min(pwm, cfg->MAX_SERVO)));
 }
 
 Ublox* initialize_gps(int milliseconds) {
@@ -76,7 +80,7 @@ ADC* initialize_adc() {
     return adc;
 }
 
-RCOutput* initialize_pwm(int freq) {
+RCOutput* initialize_pwm(float freq) {
     RCOutput* pwm = new RCOutput_Navio2();
     for (int i = 0; i < 14; i++) {
         if (!pwm->initialize(i)) {
@@ -130,21 +134,32 @@ int read_rcin(RCInput* rcin, double* array, std::map<std::string, int>& keys) {
 int write_servo(RCOutput* pwm, double* array, const air_config* cfg) {
     std::map<std::string, int> keys = cfg->keys;
     std::string controller_vec = "controller_" + std::to_string(cfg->SERVO_CONTROLLER) + "_";
-    if (cfg->MANUAL_MODE_MIN <= array[keys["rcin_CHANNEL_" + std::to_string(cfg->FLIGHT_MODE_CHANNEL)]] <= cfg->MANUAL_MODE_MAX) {
+    int mode_pwm = (int)array[keys["rcin_CHANNEL_" + std::to_string(cfg->FLIGHT_MODE_CHANNEL)]];
+    if (cfg->MANUAL_MODE_MIN <= mode_pwm && mode_pwm < cfg->MANUAL_MODE_MAX) {
         array[keys["servo_MODE_FLAG"]] = 0; // mode_flag: manual
         for (int i = 0; i < 14; i++) {
-            float new_pwm = clip_pwm(cfg, (int)array[keys["rcin_CHANNEL_" + std::to_string(i)]]);
+            float new_pwm = array[keys["rcin_CHANNEL_" + std::to_string(i)]];
+            if (i == cfg->THROTTLE_CHANNEL) {
+                new_pwm = clip_throttle(cfg, (int)new_pwm);
+            } else {
+                new_pwm = clip_servo(cfg, (int)new_pwm);
+            }
             pwm->set_duty_cycle(i, new_pwm);
             array[keys["servo_CHANNEL_" + std::to_string(i)]] = (double)new_pwm;
         }
-    } else if (cfg->AUTO_MODE_MIN <= array[keys["rcin_CHANNEL_" + std::to_string(cfg->FLIGHT_MODE_CHANNEL)]] <= cfg->AUTO_MODE_MAX) {
+    } else if (cfg->AUTO_MODE_MIN <= mode_pwm && mode_pwm < cfg->AUTO_MODE_MAX) {
         array[keys["servo_MODE_FLAG"]] = 1; //mode_flag: auto
         for (int i = 0; i < 14; i++) {
-            float new_pwm = clip_pwm(cfg, (int)array[keys[controller_vec + "CHANNEL_" + std::to_string(i)]]);
+            float new_pwm = array[keys[controller_vec + std::to_string(i)]];
+            if (i == cfg->THROTTLE_CHANNEL) {
+                new_pwm = clip_throttle(cfg, (int)new_pwm);
+            } else {
+                new_pwm = clip_servo(cfg, (int)new_pwm);
+            }
             pwm->set_duty_cycle(i, new_pwm);
             array[keys["servo_CHANNEL_" + std::to_string(i)]] = (double)new_pwm;
         }
-    } else if (cfg->SEMI_MODE_MIN <= array[keys["rcin_CHANNEL_" + std::to_string(cfg->FLIGHT_MODE_CHANNEL)]] <= cfg->SEMI_MODE_MAX) {
+    } else if (cfg->SEMI_MODE_MIN <= mode_pwm && mode_pwm < cfg->SEMI_MODE_MAX) {
         array[keys["servo_MODE_FLAG"]] = 2; //mode_flag: semi-auto
         bool man_override = false;
         double el = array[keys["rcin_CHANNEL_" + std::to_string(cfg->ELEVATOR_CHANNEL)]];
@@ -154,13 +169,23 @@ int write_servo(RCOutput* pwm, double* array, const air_config* cfg) {
         }
         if (man_override) {
             for (int i = 0; i < 14; i++) {
-                float new_pwm = clip_pwm(cfg, (int)array[keys["rcin_CHANNEL_" + std::to_string(i)]]);
+                float new_pwm = array[keys["rcin_CHANNEL_" + std::to_string(i)]];
+                if (i == cfg->THROTTLE_CHANNEL) {
+                    new_pwm = clip_throttle(cfg, (int)new_pwm);
+                } else {
+                    new_pwm = clip_servo(cfg, (int)new_pwm);
+                }
                 pwm->set_duty_cycle(i, new_pwm);
                 array[keys["servo_CHANNEL_" + std::to_string(i)]] = (double)new_pwm;
             }
         } else {
             for (int i = 0; i < 14; i++) {
-                float new_pwm = clip_pwm(cfg, (int)array[keys[controller_vec + "CHANNEL_" + std::to_string(i)]]);
+                float new_pwm = array[keys[controller_vec + std::to_string(i)]];
+                if (i == cfg->THROTTLE_CHANNEL) {
+                    new_pwm = clip_throttle(cfg, (int)new_pwm);
+                } else {
+                    new_pwm = clip_servo(cfg, (int)new_pwm);
+                }
                 pwm->set_duty_cycle(i, new_pwm);
                 array[keys["servo_CHANNEL_" + std::to_string(i)]] = (double)new_pwm;
             }
@@ -390,11 +415,18 @@ int main(int argc, char* argv[]) {
 
     memset(array, 0, SHMSIZE); // clear shared vector just in case
 
-    for (int i = 0; i < 14; i++) { // initialize all pwm channels to 1500
-        array[cfg.keys.at("rcin_CHANNEL_" + std::to_string(i))] = 1500.0;
-        array[cfg.keys.at("controller_0_CHANNEL_" + std::to_string(i))] = 1500.0;
-        array[cfg.keys.at("controller_1_CHANNEL_" + std::to_string(i))] = 1500.0;
-        array[cfg.keys.at("servo_CHANNEL_" + std::to_string(i))] = 1500.0;
+    for (int i = 0; i < 14; i++) { // set initial pwm values
+        if (i == cfg.THROTTLE_CHANNEL) {
+            array[cfg.keys.at("rcin_CHANNEL_" + std::to_string(i))] = 0.0;
+            array[cfg.keys.at("controller_0_CHANNEL_" + std::to_string(i))] = 0.0;
+            array[cfg.keys.at("controller_1_CHANNEL_" + std::to_string(i))] = 0.0;
+            array[cfg.keys.at("servo_CHANNEL_" + std::to_string(i))] = 0.0;
+        } else {
+            array[cfg.keys.at("rcin_CHANNEL_" + std::to_string(i))] = 1500.0;
+            array[cfg.keys.at("controller_0_CHANNEL_" + std::to_string(i))] = 1500.0;
+            array[cfg.keys.at("controller_1_CHANNEL_" + std::to_string(i))] = 1500.0;
+            array[cfg.keys.at("servo_CHANNEL_" + std::to_string(i))] = 1500.0;
+        }
     }
 
     pthread_t imu_thread;

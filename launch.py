@@ -28,6 +28,17 @@ def get_log_keys():
     return {key: keys[key] for key in keys.keys() if key.startswith(tuple(vec_list))}
 
 
+def get_servo_channels():
+    channels = {}
+    channels["THROTTLE"] = cfg["THREADS"]["RCIN_SERVO"]["THROTTLE_CHANNEL"]
+    channels["ELEVATOR"] = cfg["THREADS"]["RCIN_SERVO"]["ELEVATOR_CHANNEL"]
+    channels["AILERON"] = cfg["THREADS"]["RCIN_SERVO"]["AILERON_CHANNEL"]
+    channels["RUDDER"] = cfg["THREADS"]["RCIN_SERVO"]["RUDDER_CHANNEL"]
+    channels["FLAPS"] = cfg["THREADS"]["RCIN_SERVO"]["FLAPS_CHANNEL"]
+    channels["MODE"] = cfg["THREADS"]["RCIN_SERVO"]["FLIGHT_MODES"]["MODE_CHANNEL"]
+    return channels
+
+
 if __name__ == "__main__":
 
     print()
@@ -73,7 +84,8 @@ if __name__ == "__main__":
     if cfg["THREADS"]["CONTROLLER_1"]["ENABLED"]:
 
         con1_xh_index = cfg["THREADS"]["CONTROLLER_1"]["XH_VECTOR_TO_USE"]
-        mem_con1 = shared_mem_helper_controller_1.helper(shm, keys, con1_xh_index)
+        channels = get_servo_channels()
+        mem_con1 = shared_mem_helper_controller_1.helper(shm, keys, con1_xh_index, channels)
         max_sleep_con1 = 1.0 / cfg["THREADS"]["CONTROLLER_1"]["RATE"]
         controller_1_process = multiprocessing.Process(
             target=controller_1.controller_loop, args=(mem_con1, max_sleep_con1)

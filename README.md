@@ -21,6 +21,10 @@ Python-based Educational Autopilot System
 - Improved IMU-related prelaunch checks.
 - Added dependency installation to launch routine.
 - Extracted estimator_0 and controller_0 into dedicated files.
+- Added type validation to config checker.
+- Added names to some servo channels to make controller development easier.
+- Enhanced memory helpers for Python estimator and controller.
+- Fixed servo loop bug and added prelaunch check for mode PWM ranges.
 
 ## TODO
 
@@ -39,8 +43,10 @@ Python-based Educational Autopilot System
 
 ## INSTALLATION / EXECUTION
 
+- `cd PEAS/`
 - `sudo python3 launch.py` should hopefully take care of everything.
   - The `libjsoncpp-dev` apt package will be installed.
-  - The `sysv_ipc` pip package will be installed.
+  - The `jsonschema` pip module will be installed.
+  - The `sysv_ipc` pip module will be installed.
   - The mavlink submodule will be cloned if not already.
 - Note that some existing Navio2 libraries have been modified. Hence the Emlid submodule is not included.

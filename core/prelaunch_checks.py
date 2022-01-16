@@ -13,7 +13,7 @@ def check_dependencies():
         os.system("sudo apt-get install libjsoncpp-dev")
         cache = apt.Cache()
         if not cache["libjsoncpp-dev"].is_installed:
-            print("\nInstallation failed. Launch canceled.")
+            print("\nInstallation failed. Launch canceled.\n")
             sys.exit()
         else:
             print("\nInstallation successful.\n")
@@ -21,14 +21,27 @@ def check_dependencies():
     try:
         import sysv_ipc
     except ImportError as e:
-        print("Python sysv_ipc module was not found.\nAttempting to install...\n")
+        print("Python module sysv_ipc was not found.\nAttempting to install...\n")
         os.system("sudo pip3 install sysv_ipc")
         try:
             import sysv_ipc
 
             print("")
         except ImportError as e:
-            print("\nInstallation failed. Launch canceled.")
+            print("\nInstallation failed. Launch canceled.\n")
+            sys.exit()
+
+    try:
+        import jsonschema
+    except ImportError as e:
+        print("Python module jsonschema was not found.\nAttempting to install...\n")
+        os.system("sudo pip3 install jsonschema")
+        try:
+            import jsonschema
+
+            print("")
+        except ImportError as e:
+            print("\nInstallation failed. Launch canceled.\n")
             sys.exit()
 
     if not os.path.exists("core/mavlink/common/"):
@@ -37,7 +50,7 @@ def check_dependencies():
         )
         os.system("git submodule update --init")
         if not os.path.exists("core/mavlink/common/"):
-            print("\nClone failed. Launch canceled.")
+            print("\nClone failed. Launch canceled.\n")
             sys.exit()
         else:
             print("\nClone successful.\n")
@@ -50,7 +63,7 @@ def check_core():
         )
         os.system("make -s -C core/")
         if not os.path.exists("core/air"):
-            print("Build failed. Launch canceled.")
+            print("Build failed. Launch canceled.\n")
             sys.exit()
         else:
             print("Compilation successful.\n")
@@ -58,82 +71,204 @@ def check_core():
 
 def check_config():
     cfg = json.load(open("config.json"))
-    confirm_attributes(cfg)
+    check_property_types(cfg)
     verify_thead_rates(cfg)
     check_vector_dependencies(cfg)
     check_imu_enabled(cfg)
     check_imu_calibration(cfg)
+    check_servo_channels(cfg)
     return get_keys(cfg)
 
 
-def confirm_attributes(cfg):
+def check_property_types(cfg):
     path = ""
     structure = {
-        "THREADS": {
-            "LOGGER": {
-                "ENABLED": {},
-                "RATE": {},
-                "LOG_SENSOR_DATA": {},
-                "LOG_ESTIMATOR_0": {},
-                "LOG_ESTIMATOR_1": {},
-                "LOG_CONTROLLER_0": {},
-                "LOG_CONTROLLER_1": {},
-                "LOG_RCIN_SERVO": {},
-            },
-            "ESTIMATOR_0": {"ENABLED": {}, "RATE": {}},
-            "ESTIMATOR_1": {"ENABLED": {}, "RATE": {}},
-            "CONTROLLER_0": {
-                "ENABLED": {},
-                "RATE": {},
-                "XH_VECTOR_TO_USE": {},
-            },
-            "CONTROLLER_1": {
-                "ENABLED": {},
-                "RATE": {},
-                "XH_VECTOR_TO_USE": {},
-            },
-            "IMU_ADC": {
-                "ENABLED": {},
-                "RATE": {},
-                "USE_LSM9DS1": {},
-                "USE_MPU9250": {},
-                "PRIMARY_IMU": {},
-                "APPLY_CALIBRATION_PROFILE": {},
-                "USE_ADC": {},
-            },
-            "GPS_BAROMETER": {
-                "ENABLED": {},
-                "RATE": {},
-                "USE_GPS": {},
-                "USE_MS5611": {},
-            },
-            "RCIN_SERVO": {
-                "ENABLED": {},
-                "RATE": {},
-                "PWM_FREQUENCY": {},
-                "CONTROLLER_VECTOR_TO_USE": {},
-                "ELEVATOR_CHANNEL": {},
-                "AILERON_CHANNEL": {},
-                "FLIGHT_MODES": {
-                    "MODE_CHANNEL": {},
-                    "MANUAL_RANGE": {"LOW": {}, "HIGH": {}},
-                    "SEMI-AUTO_RANGE": {"LOW": {}, "HIGH": {}},
-                    "SEMI-AUTO_DEADZONE": {},
-                    "AUTO_RANGE": {"LOW": {}, "HIGH": {}},
+        "type": "object",
+        "properties": {
+            "THREADS": {
+                "type": "object",
+                "properties": {
+                    "LOGGER": {
+                        "type": "object",
+                        "properties": {
+                            "ENABLED": {"type": "boolean"},
+                            "RATE": {"type": "number"},
+                            "LOG_SENSOR_DATA": {"type": "boolean"},
+                            "LOG_ESTIMATOR_0": {"type": "boolean"},
+                            "LOG_ESTIMATOR_1": {"type": "boolean"},
+                            "LOG_CONTROLLER_0": {"type": "boolean"},
+                            "LOG_CONTROLLER_1": {"type": "boolean"},
+                            "LOG_RCIN_SERVO": {"type": "boolean"},
+                        },
+                        "required": [
+                            "LOG_SENSOR_DATA",
+                            "LOG_ESTIMATOR_0",
+                            "LOG_ESTIMATOR_1",
+                            "LOG_CONTROLLER_0",
+                            "LOG_CONTROLLER_1",
+                            "LOG_RCIN_SERVO",
+                        ],
+                    },
+                    "ESTIMATOR_0": {
+                        "type": "object",
+                        "properties": {
+                            "ENABLED": {"type": "boolean"},
+                            "RATE": {"type": "number"},
+                        },
+                        "required": ["ENABLED", "RATE"],
+                    },
+                    "ESTIMATOR_1": {
+                        "type": "object",
+                        "properties": {
+                            "ENABLED": {"type": "boolean"},
+                            "RATE": {"type": "number"},
+                        },
+                        "required": ["ENABLED", "RATE"],
+                    },
+                    "CONTROLLER_0": {
+                        "type": "object",
+                        "properties": {
+                            "ENABLED": {"type": "boolean"},
+                            "RATE": {"type": "number"},
+                            "XH_VECTOR_TO_USE": {"type": "integer"},
+                        },
+                        "required": ["ENABLED", "RATE", "XH_VECTOR_TO_USE"],
+                    },
+                    "CONTROLLER_1": {
+                        "type": "object",
+                        "properties": {
+                            "ENABLED": {"type": "boolean"},
+                            "RATE": {"type": "number"},
+                            "XH_VECTOR_TO_USE": {"type": "integer"},
+                        },
+                        "required": ["ENABLED", "RATE", "XH_VECTOR_TO_USE"],
+                    },
+                    "IMU_ADC": {
+                        "type": "object",
+                        "properties": {
+                            "ENABLED": {"type": "boolean"},
+                            "RATE": {"type": "number"},
+                            "USE_LSM9DS1": {"type": "boolean"},
+                            "USE_MPU9250": {"type": "boolean"},
+                            "PRIMARY_IMU": {"type": "string"},
+                            "APPLY_CALIBRATION_PROFILE": {"type": "boolean"},
+                            "USE_ADC": {"type": "boolean"},
+                        },
+                        "required": [
+                            "ENABLED",
+                            "RATE",
+                            "USE_LSM9DS1",
+                            "USE_MPU9250",
+                            "PRIMARY_IMU",
+                            "APPLY_CALIBRATION_PROFILE",
+                            "USE_ADC",
+                        ],
+                    },
+                    "GPS_BAROMETER": {
+                        "type": "object",
+                        "properties": {
+                            "ENABLED": {"type": "boolean"},
+                            "RATE": {"type": "number"},
+                            "USE_GPS": {"type": "boolean"},
+                            "USE_MS5611": {"type": "boolean"},
+                        },
+                        "required": ["ENABLED", "RATE", "USE_GPS", "USE_MS5611"],
+                    },
+                    "RCIN_SERVO": {
+                        "type": "object",
+                        "properties": {
+                            "ENABLED": {"type": "boolean"},
+                            "RATE": {"type": "number"},
+                            "PWM_FREQUENCY": {"type": "number"},
+                            "CONTROLLER_VECTOR_TO_USE": {"type": "integer"},
+                            "THROTTLE_CHANNEL": {"type": "integer"},
+                            "AILERON_CHANNEL": {"type": "integer"},
+                            "ELEVATOR_CHANNEL": {"type": "integer"},
+                            "RUDDER_CHANNEL": {"type": "integer"},
+                            "FLAPS_CHANNEL": {"type": "integer"},
+                            "FLIGHT_MODES": {
+                                "type": "object",
+                                "properties": {
+                                    "MODE_CHANNEL": {"type": "integer"},
+                                    "MANUAL_RANGE": {
+                                        "type": "object",
+                                        "properties": {
+                                            "LOW": {"type": "integer"},
+                                            "HIGH": {"type": "integer"},
+                                        },
+                                        "required": ["LOW", "HIGH"],
+                                    },
+                                    "SEMI-AUTO_RANGE": {
+                                        "type": "object",
+                                        "properties": {
+                                            "LOW": {"type": "integer"},
+                                            "HIGH": {"type": "integer"},
+                                            "DEADZONE": {"type": "integer"},
+                                        },
+                                        "required": [
+                                            "LOW",
+                                            "HIGH",
+                                            "DEADZONE",
+                                        ],
+                                    },
+                                    "AUTO_RANGE": {
+                                        "type": "object",
+                                        "properties": {
+                                            "LOW": {"type": "integer"},
+                                            "HIGH": {"type": "integer"},
+                                        },
+                                        "required": ["LOW", "HIGH"],
+                                    },
+                                },
+                                "required": [
+                                    "MODE_CHANNEL",
+                                    "MANUAL_RANGE",
+                                    "SEMI-AUTO_RANGE",
+                                    "AUTO_RANGE",
+                                ],
+                            },
+                            "MIN_THROTTLE": {"type": "integer"},
+                            "MAX_THROTTLE": {"type": "integer"},
+                            "MIN_SERVO": {"type": "integer"},
+                            "MAX_SERVO": {"type": "integer"},
+                        },
+                        "required": [
+                            "ENABLED",
+                            "RATE",
+                            "PWM_FREQUENCY",
+                            "CONTROLLER_VECTOR_TO_USE",
+                            "THROTTLE_CHANNEL",
+                            "AILERON_CHANNEL",
+                            "ELEVATOR_CHANNEL",
+                            "RUDDER_CHANNEL",
+                            "FLAPS_CHANNEL",
+                            "FLIGHT_MODES",
+                            "MIN_THROTTLE",
+                            "MAX_THROTTLE",
+                            "MIN_SERVO",
+                            "MAX_SERVO",
+                        ],
+                    },
+                    "TELEMETRY": {
+                        "type": "object",
+                        "properties": {
+                            "ENABLED": {"type": "boolean"},
+                            "RATE": {"type": "number"},
+                        },
+                        "required": ["ENABLED", "RATE"],
+                    },
                 },
-                "MIN_PWM_OUT": {},
-                "MAX_PWM_OUT": {},
-            },
-            "TELEMETRY": {"ENABLED": {}, "RATE": {}},
-        }
+            }
+        },
     }
 
-    key, path = check_key_structure(cfg, structure, path)
+    import jsonschema
 
-    if key:
-        print(
-            f"CONFIG ERROR: Attribute {key} is missing in path '{path}' of config.json.\n"
-        )
+    try:
+        jsonschema.validate(instance=cfg, schema=structure)
+    except jsonschema.ValidationError as e:
+        path = "/".join(str(item) for item in e.absolute_path)
+        print(f"Invalid config at {path}\n\t{e.message}\n")
         sys.exit()
 
 
@@ -152,17 +287,9 @@ def verify_thead_rates(cfg):
         "TELEMETRY",
     ]:
         t = threads[name]
-        try:
-            if not isinstance(t["ENABLED"], bool):
-                raise TypeError
-            if t["RATE"] <= 0.0 and t["ENABLED"]:
-                print(
-                    f"CONFIG ERROR: Invalid rate specified for {name} thread. Rate must be greater than 0 hertz.\nIf you wish to disable the thread, set ENABLED to false.\n"
-                )
-                sys.exit()
-        except TypeError:
+        if t["RATE"] <= 0.0 and t["ENABLED"]:
             print(
-                f"CONFIG ERROR:\n\tInvalid type for ENABLED and/or RATE attributes of {name} thread.\nENABLED should be boolean, RATE should be numeric.\n"
+                f"CONFIG ERROR: Invalid rate specified for {name} thread. Rate must be greater than 0 hertz.\nIf you wish to disable the thread, set ENABLED to false.\n"
             )
             sys.exit()
 
@@ -278,6 +405,61 @@ def check_imu_calibration(cfg):
                     sys.exit()
 
 
+def check_servo_channels(cfg):
+    t = cfg["THREADS"]["RCIN_SERVO"]
+    channels = [
+        t["THROTTLE_CHANNEL"],
+        t["ELEVATOR_CHANNEL"],
+        t["AILERON_CHANNEL"],
+        t["FLAPS_CHANNEL"],
+        t["RUDDER_CHANNEL"],
+        t["FLIGHT_MODES"]["MODE_CHANNEL"],
+    ]
+    for c in channels:
+        if c < 0 or c > 13:
+            print("CONFIG ERROR: One or more servo channels was out of bounds.")
+            print(
+                "Check the RCIN_SERVO section of config.json, and ensure all channel values are between 0-13.\n"
+            )
+            sys.exit()
+    if len(set(channels)) != len(channels):
+        print("CONFIG ERROR: Two or more servo types were mapped to the same channel.")
+        print(
+            "Check the RCIN_SERVO section of config.json, and ensure all channel values are unique and between 0-13.\n"
+        )
+        sys.exit()
+
+
+def check_mode_ranges(cfg):
+    r = cfg["THREADS"]["RCIN_SERVO"]["FLIGHT_MODES"]
+
+    if (
+        r["MANUAL_RANGE"]["LOW"] < r["MANUAL_RANGE"]["HIGH"]
+        or r["SEMI_AUTO_RANGE"]["LOW"] < r["SEMI_AUTO_RANGE"]["HIGH"]
+        or r["AUTO_RANGE"]["LOW"] < r["AUTO_RANGE"]["HIGH"]
+    ):
+        print(
+            "CONFIG ERROR: An invalid flight mode range was detected. Upper limit cannot be larger than lower limit."
+        )
+        print("Check the RCIN_SERVO section of config.json.\n")
+        sys.exit()
+
+    manual = set(range(r["MANUAL_RANGE"]["LOW"], r["MANUAL_RANGE"]["HIGH"]))
+    semi = set(range(r["SEMI_AUTO_RANGE"]["LOW"], r["SEMI_AUTO_RANGE"]["HIGH"]))
+    auto = set(range(r["AUTO_RANGE"]["LOW"], r["AUTO_RANGE"]["HIGH"]))
+
+    if (
+        manual.intersection(semi)
+        or manual.intersection(auto)
+        or semi.intersection(auto)
+    ):
+        print("CONFIG ERROR: An overlap was detected between fligh mode ranges.")
+        print(
+            "Check the RCIN_SERVO section of config.json, and ensure all flight mode ranges are distinct.\n"
+        )
+        sys.exit()
+
+
 def get_keys(cfg):
     i = 1
     vectors = cfg["VECTORS"]
@@ -292,19 +474,6 @@ def get_keys(cfg):
             keys[k] = i
             i += 1
     return cfg, keys
-
-
-def check_key_structure(obj, structure, path):
-    try:
-        for key, value in structure.items():
-            path += "/" + key
-            o = obj[key]
-            error, path = check_key_structure(o, value, path)
-            if error:
-                return error, path
-        return "", path.rsplit("/", 1)[0]
-    except KeyError:
-        return key, path.rsplit("/", 1)[0]
 
 
 def check_calibration_date(filepath):
@@ -327,7 +496,3 @@ def ask_proceed():
             return True
         if reply == "N":
             return False
-
-
-if __name__ == "__main__":
-    check_config()

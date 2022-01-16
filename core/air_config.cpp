@@ -1,4 +1,5 @@
 #include "air_config.h"
+#include "air.h"
 
 air_config::air_config() {
 
@@ -48,16 +49,21 @@ air_config::air_config() {
     }
 
     PWM_FREQUENCY = threads["RCIN_SERVO"]["PWM_FREQUENCY"].asInt();
-    MIN_PWM_OUT = threads["RCIN_SERVO"]["MIN_PWM_OUT"].asInt();
-    MAX_PWM_OUT = threads["RCIN_SERVO"]["MAX_PWM_OUT"].asInt();
-    ELEVATOR_CHANNEL = threads["RCIN_SERVO"]["ELEVATOR_CHANNEL"].asInt();
+    MIN_THROTTLE = threads["RCIN_SERVO"]["MIN_THROTTLE"].asInt();
+    MAX_THROTTLE = threads["RCIN_SERVO"]["MAX_THROTTLE"].asInt();
+    MIN_SERVO = threads["RCIN_SERVO"]["MIN_SERVO"].asInt();
+    MAX_SERVO = threads["RCIN_SERVO"]["MAX_SERVO"].asInt();
+    THROTTLE_CHANNEL = threads["RCIN_SERVO"]["THROTTLE_CHANNEL"].asInt();
     AILERON_CHANNEL = threads["RCIN_SERVO"]["AILERON_CHANNEL"].asInt();
+    ELEVATOR_CHANNEL = threads["RCIN_SERVO"]["ELEVATOR_CHANNEL"].asInt();
+    RUDDER_CHANNEL = threads["RCIN_SERVO"]["RUDDER_CHANNEL"].asInt();
+    FLAPS_CHANNEL = threads["RCIN_SERVO"]["FLAPS_CHANNEL"].asInt();
     FLIGHT_MODE_CHANNEL = threads["RCIN_SERVO"]["FLIGHT_MODES"]["MODE_CHANNEL"].asInt();
     MANUAL_MODE_MIN = threads["RCIN_SERVO"]["FLIGHT_MODES"]["MANUAL_RANGE"]["LOW"].asInt();
     MANUAL_MODE_MAX = threads["RCIN_SERVO"]["FLIGHT_MODES"]["MANUAL_RANGE"]["HIGH"].asInt();
     SEMI_MODE_MIN = threads["RCIN_SERVO"]["FLIGHT_MODES"]["SEMI-AUTO_RANGE"]["LOW"].asInt();
     SEMI_MODE_MAX = threads["RCIN_SERVO"]["FLIGHT_MODES"]["SEMI-AUTO_RANGE"]["HIGH"].asInt();
-    SEMI_DEADZONE = threads["RCIN_SERVO"]["FLIGHT_MODES"]["SEMI-AUTO_DEADZONE"].asInt();
+    SEMI_DEADZONE = threads["RCIN_SERVO"]["FLIGHT_MODES"]["SEMI-AUTO_RANGE"]["DEADZONE"].asInt();
     AUTO_MODE_MIN = threads["RCIN_SERVO"]["FLIGHT_MODES"]["AUTO_RANGE"]["LOW"].asInt();
     AUTO_MODE_MAX = threads["RCIN_SERVO"]["FLIGHT_MODES"]["AUTO_RANGE"]["HIGH"].asInt();
 
@@ -72,4 +78,20 @@ air_config::air_config() {
             keys.insert(std::pair<std::string, int>(key, i++));
         }
     }
+
+    keys.insert(std::pair<std::string, int>("rcin_THROTTLE", keys.at("rcin_CHANNEL_" + std::to_string(THROTTLE_CHANNEL))));
+    keys.insert(std::pair<std::string, int>("rcin_ELEVATOR", keys.at("rcin_CHANNEL_" + std::to_string(ELEVATOR_CHANNEL))));
+    keys.insert(std::pair<std::string, int>("rcin_AILERON", keys.at("rcin_CHANNEL_" + std::to_string(AILERON_CHANNEL))));
+    keys.insert(std::pair<std::string, int>("rcin_RUDDER", keys.at("rcin_CHANNEL_" + std::to_string(RUDDER_CHANNEL))));
+    keys.insert(std::pair<std::string, int>("rcin_FLAPS", keys.at("rcin_CHANNEL_" + std::to_string(FLAPS_CHANNEL))));
+    keys.insert(std::pair<std::string, int>("servo_THROTTLE", keys.at("servo_CHANNEL_" + std::to_string(THROTTLE_CHANNEL))));
+    keys.insert(std::pair<std::string, int>("servo_ELEVATOR", keys.at("servo_CHANNEL_" + std::to_string(ELEVATOR_CHANNEL))));
+    keys.insert(std::pair<std::string, int>("servo_AILERON", keys.at("servo_CHANNEL_" + std::to_string(AILERON_CHANNEL))));
+    keys.insert(std::pair<std::string, int>("servo_RUDDER", keys.at("servo_CHANNEL_" + std::to_string(RUDDER_CHANNEL))));
+    keys.insert(std::pair<std::string, int>("servo_FLAPS", keys.at("servo_CHANNEL_" + std::to_string(FLAPS_CHANNEL))));
+    keys.insert(std::pair<std::string, int>("controller_0_THROTTLE", keys.at("controller_0_CHANNEL_" + std::to_string(THROTTLE_CHANNEL))));
+    keys.insert(std::pair<std::string, int>("controller_0_ELEVATOR", keys.at("controller_0_CHANNEL_" + std::to_string(ELEVATOR_CHANNEL))));
+    keys.insert(std::pair<std::string, int>("controller_0_AILERON", keys.at("controller_0_CHANNEL_" + std::to_string(AILERON_CHANNEL))));
+    keys.insert(std::pair<std::string, int>("controller_0_RUDDER", keys.at("controller_0_CHANNEL_" + std::to_string(RUDDER_CHANNEL))));
+    keys.insert(std::pair<std::string, int>("controller_0_FLAPS", keys.at("controller_0_CHANNEL_" + std::to_string(FLAPS_CHANNEL))));
 }
