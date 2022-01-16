@@ -25,6 +25,9 @@ Python-based Educational Autopilot System
 - Added names to some servo channels to make controller development easier.
 - Enhanced memory helpers for Python estimator and controller.
 - Fixed servo loop bug and added prelaunch check for mode PWM ranges.
+- Enforced manual RC mode as default.
+- Enabled logger to save incrementally in the event of a crash/shutdown.
+
 
 ## TODO
 
@@ -40,6 +43,7 @@ Python-based Educational Autopilot System
 - Test like every individual piece in different config scenarios.
   - Especially servo thread since I don't know if RCIN and PWM scales are the same.
 - Documentation overview and config setting explanations.
+- Maybe remove vector keys from config.json file.
 
 ## INSTALLATION / EXECUTION
 

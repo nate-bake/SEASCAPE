@@ -4,11 +4,12 @@
       "DESCRIPTION": "Creates a log file when program terminates. Stores values from vectors selected below.",
       "ENABLED": true,
       "RATE": 50,
+      "SAVE_INTERVAL": 5,
       "LOG_SENSOR_DATA": true,
       "LOG_ESTIMATOR_0": true,
-      "LOG_ESTIMATOR_1": true,
+      "LOG_ESTIMATOR_1": false,
       "LOG_CONTROLLER_0": false,
-      "LOG_CONTROLLER_1": false,
+      "LOG_CONTROLLER_1": true,
       "LOG_RCIN_SERVO": true
     },
     "ESTIMATOR_0": {
@@ -39,7 +40,7 @@
       "RATE": 100,
       "USE_LSM9DS1": true,
       "USE_MPU9250": true,
-      "PRIMARY_IMU": "LSM9DS1",
+      "PRIMARY_IMU": "MPU9250",
       "APPLY_CALIBRATION_PROFILE": true,
       "USE_ADC": true
     },
@@ -63,7 +64,7 @@
       "FLAPS_CHANNEL": 5,
       "FLIGHT_MODES": {
         "MODE_CHANNEL": 4,
-        "NOTE": "Ranges include the lower value, but exclude the upper value.",
+        "NOTE": "Ranges include the lower value, but exclude the upper value. Default mode is manual.",
         "MANUAL_RANGE": {
           "LOW": 750,
           "HIGH": 1250

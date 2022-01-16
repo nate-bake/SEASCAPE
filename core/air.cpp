@@ -103,7 +103,7 @@ int read_imu(InertialSensor* imu, double* array, std::map<std::string, int>& key
     }
     std::string prefix = "y_IMU_" + std::to_string(index) + "_";
     imu->read_accelerometer(array + keys[prefix + "AX"], array + keys[prefix + "AY"], array + keys[prefix + "AZ"]);
-    imu->read_gyroscope(array + keys[prefix + "GYRO_P"], array + keys[prefix + "GYRO_Q"], array + keys[prefix + "GYRO_Q"]);
+    imu->read_gyroscope(array + keys[prefix + "GYRO_P"], array + keys[prefix + "GYRO_Q"], array + keys[prefix + "GYRO_R"]);
     imu->read_magnetometer(array + keys[prefix + "MAG_X"], array + keys[prefix + "MAG_Y"], array + keys[prefix + "MAG_Z"]);
     return 0;
 }
@@ -135,20 +135,8 @@ int write_servo(RCOutput* pwm, double* array, const air_config* cfg) {
     std::map<std::string, int> keys = cfg->keys;
     std::string controller_vec = "controller_" + std::to_string(cfg->SERVO_CONTROLLER) + "_";
     int mode_pwm = (int)array[keys["rcin_CHANNEL_" + std::to_string(cfg->FLIGHT_MODE_CHANNEL)]];
-    if (cfg->MANUAL_MODE_MIN <= mode_pwm && mode_pwm < cfg->MANUAL_MODE_MAX) {
-        array[keys["servo_MODE_FLAG"]] = 0; // mode_flag: manual
-        for (int i = 0; i < 14; i++) {
-            float new_pwm = array[keys["rcin_CHANNEL_" + std::to_string(i)]];
-            if (i == cfg->THROTTLE_CHANNEL) {
-                new_pwm = clip_throttle(cfg, (int)new_pwm);
-            } else {
-                new_pwm = clip_servo(cfg, (int)new_pwm);
-            }
-            pwm->set_duty_cycle(i, new_pwm);
-            array[keys["servo_CHANNEL_" + std::to_string(i)]] = (double)new_pwm;
-        }
-    } else if (cfg->AUTO_MODE_MIN <= mode_pwm && mode_pwm < cfg->AUTO_MODE_MAX) {
-        array[keys["servo_MODE_FLAG"]] = 1; //mode_flag: auto
+    if (cfg->AUTO_MODE_MIN <= mode_pwm && mode_pwm < cfg->AUTO_MODE_MAX) {
+        array[keys["servo_MODE_FLAG"]] = 2; //mode_flag: auto
         for (int i = 0; i < 14; i++) {
             float new_pwm = array[keys[controller_vec + std::to_string(i)]];
             if (i == cfg->THROTTLE_CHANNEL) {
@@ -160,7 +148,7 @@ int write_servo(RCOutput* pwm, double* array, const air_config* cfg) {
             array[keys["servo_CHANNEL_" + std::to_string(i)]] = (double)new_pwm;
         }
     } else if (cfg->SEMI_MODE_MIN <= mode_pwm && mode_pwm < cfg->SEMI_MODE_MAX) {
-        array[keys["servo_MODE_FLAG"]] = 2; //mode_flag: semi-auto
+        array[keys["servo_MODE_FLAG"]] = 1; //mode_flag: semi-auto
         bool man_override = false;
         double el = array[keys["rcin_CHANNEL_" + std::to_string(cfg->ELEVATOR_CHANNEL)]];
         double al = array[keys["rcin_CHANNEL_" + std::to_string(cfg->AILERON_CHANNEL)]];
@@ -189,6 +177,18 @@ int write_servo(RCOutput* pwm, double* array, const air_config* cfg) {
                 pwm->set_duty_cycle(i, new_pwm);
                 array[keys["servo_CHANNEL_" + std::to_string(i)]] = (double)new_pwm;
             }
+        }
+    } else {
+        array[keys["servo_MODE_FLAG"]] = 0; // mode_flag: manual
+        for (int i = 0; i < 14; i++) {
+            float new_pwm = array[keys["rcin_CHANNEL_" + std::to_string(i)]];
+            if (i == cfg->THROTTLE_CHANNEL) {
+                new_pwm = clip_throttle(cfg, (int)new_pwm);
+            } else {
+                new_pwm = clip_servo(cfg, (int)new_pwm);
+            }
+            pwm->set_duty_cycle(i, new_pwm);
+            array[keys["servo_CHANNEL_" + std::to_string(i)]] = (double)new_pwm;
         }
     }
     return 0;
@@ -451,14 +451,18 @@ int main(int argc, char* argv[]) {
     if (cfg.SERVO_LOOP_ENABLED) {
         pthread_create(&servo_thread, NULL, &servo_loop, (void*)&thread_args);
     }
+    usleep(2000000);
     if (cfg.ESTIMATOR_ENABLED) {
         pthread_create(&estimation_thread, NULL, &estimation_loop, (void*)&thread_args);
+        printf("Starting estimator_0 thread.\n");
     }
     if (cfg.CONTROLLER_ENABLED) {
         pthread_create(&control_thread, NULL, &control_loop, (void*)&thread_args);
+        printf("Starting controller_0 thread.\n");
     }
     if (cfg.TELEMETRY_LOOP_ENABLED) {
         pthread_create(&telemetry_thread, NULL, &telemetry_loop, (void*)&thread_args);
+        printf("Starting telemetry thread.\n");
     }
 
     if (cfg.IMU_LOOP_ENABLED) {

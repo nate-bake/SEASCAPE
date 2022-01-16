@@ -16,7 +16,7 @@ def check_dependencies():
             print("\nInstallation failed. Launch canceled.\n")
             sys.exit()
         else:
-            print("\nInstallation successful.\n")
+            print("Installation successful.\n")
 
     try:
         import sysv_ipc
@@ -45,9 +45,7 @@ def check_dependencies():
             sys.exit()
 
     if not os.path.exists("core/mavlink/common/"):
-        print(
-            "Seems like the mavlink submodule is not present.\nAttempting to clone...\n"
-        )
+        print("Seems like the mavlink submodule is not present.\nAttempting to clone...\n")
         os.system("git submodule update --init")
         if not os.path.exists("core/mavlink/common/"):
             print("\nClone failed. Launch canceled.\n")
@@ -58,9 +56,7 @@ def check_dependencies():
 
 def check_core():
     if not os.path.exists("core/air"):
-        print(
-            "Looks like the core files have not been compiled yet.\nAttempting to compile...\n"
-        )
+        print("Looks like the core files have not been compiled yet.\nAttempting to compile...\n")
         os.system("make -s -C core/")
         if not os.path.exists("core/air"):
             print("Build failed. Launch canceled.\n")
@@ -78,7 +74,9 @@ def check_config():
     check_imu_calibration(cfg)
     check_mode_ranges(cfg)
     check_servo_channels(cfg)
-    return get_keys(cfg)
+    keys = get_keys(cfg)
+    channels = get_servo_channels(cfg)
+    return cfg, keys, channels
 
 
 def check_property_types(cfg):
@@ -94,6 +92,7 @@ def check_property_types(cfg):
                         "properties": {
                             "ENABLED": {"type": "boolean"},
                             "RATE": {"type": "number"},
+                            "SAVE_INTERVAL": {"type": "number"},
                             "LOG_SENSOR_DATA": {"type": "boolean"},
                             "LOG_ESTIMATOR_0": {"type": "boolean"},
                             "LOG_ESTIMATOR_1": {"type": "boolean"},
@@ -102,6 +101,9 @@ def check_property_types(cfg):
                             "LOG_RCIN_SERVO": {"type": "boolean"},
                         },
                         "required": [
+                            "ENABLED",
+                            "RATE",
+                            "SAVE_INTERVAL",
                             "LOG_SENSOR_DATA",
                             "LOG_ESTIMATOR_0",
                             "LOG_ESTIMATOR_1",
@@ -306,9 +308,7 @@ def check_vector_dependencies(cfg):
             continue
         xh = t["XH_VECTOR_TO_USE"]
         if xh not in [0, 1]:
-            print(
-                f"CONFIG ERROR: Invalid value for THREADS/{name}/XH_VECTOR_TO_USE. Should be either 0 or 1.\n"
-            )
+            print(f"CONFIG ERROR: Invalid value for THREADS/{name}/XH_VECTOR_TO_USE. Should be either 0 or 1.\n")
         if not threads["ESTIMATOR_" + str(xh)]["ENABLED"]:
             print(
                 f"CONFIG WARNING: {name} is expecting to read values from ESTIMATOR_{xh} which is disabled.\nHaving the xh_{xh} vector empty will likely yield dangerously innacurate results from {name}."
@@ -362,9 +362,7 @@ def check_imu_enabled(cfg):
         new_value = "LSM9DS1"
         if imu_cfg["USE_MPU9250"] and not imu_cfg["USE_LSM9DS1"]:
             new_value = "MPU9250"
-        print(
-            f"CONFIG WARNING: Invalid PRIMARY_IMU.\nThis value will default to {new_value}."
-        )
+        print(f"CONFIG WARNING: Invalid PRIMARY_IMU.\nThis value will default to {new_value}.")
         if not ask_proceed():
             sys.exit()
         else:
@@ -380,9 +378,7 @@ def check_imu_calibration(cfg):
                     "Looks like you haven't calibrated your LSM9DS1 IMU yet. Try launching again after running the calibration script.\n"
                 )
                 sys.exit()
-            modified = check_calibration_date(
-                "data/calibration/LSM9DS1_calibration.bin"
-            )
+            modified = check_calibration_date("data/calibration/LSM9DS1_calibration.bin")
             if modified is not None:
                 print(
                     f"Looks like you haven't calibrated your LSM9DS1 IMU in over a month. [{modified.strftime('%m/%d/%Y, %H:%M:%S')}]"
@@ -395,9 +391,7 @@ def check_imu_calibration(cfg):
                     "Looks like you haven't calibrated your MPU9250 IMU yet. Try launching again after running the calibration script.\n"
                 )
                 sys.exit()
-            modified = check_calibration_date(
-                "data/calibration/MPU9250_calibration.bin"
-            )
+            modified = check_calibration_date("data/calibration/MPU9250_calibration.bin")
             if modified is not None:
                 print(
                     f"Looks like you haven't calibrated your MPU9250 IMU in over a month. [{modified.strftime('%m/%d/%Y, %H:%M:%S')}]"
@@ -419,9 +413,7 @@ def check_servo_channels(cfg):
     for c in channels:
         if c < 0 or c > 13:
             print("CONFIG ERROR: One or more servo channels was out of bounds.")
-            print(
-                "Check the RCIN_SERVO section of config.json, and ensure all channel values are between 0-13.\n"
-            )
+            print("Check the RCIN_SERVO section of config.json, and ensure all channel values are between 0-13.\n")
             sys.exit()
     if len(set(channels)) != len(channels):
         print("CONFIG ERROR: Two or more servo types were mapped to the same channel.")
@@ -449,15 +441,9 @@ def check_mode_ranges(cfg):
     semi = set(range(r["SEMI-AUTO_RANGE"]["LOW"], r["SEMI-AUTO_RANGE"]["HIGH"]))
     auto = set(range(r["AUTO_RANGE"]["LOW"], r["AUTO_RANGE"]["HIGH"]))
 
-    if (
-        manual.intersection(semi)
-        or manual.intersection(auto)
-        or semi.intersection(auto)
-    ):
+    if manual.intersection(semi) or manual.intersection(auto) or semi.intersection(auto):
         print("CONFIG ERROR: An overlap was detected between flight mode ranges.")
-        print(
-            "Check the RCIN_SERVO section of config.json, and ensure all flight mode ranges are distinct.\n"
-        )
+        print("Check the RCIN_SERVO section of config.json, and ensure all flight mode ranges are distinct.\n")
         sys.exit()
 
 
@@ -474,7 +460,18 @@ def get_keys(cfg):
                 sys.exit()
             keys[k] = i
             i += 1
-    return cfg, keys
+    return keys
+
+
+def get_servo_channels(cfg):
+    channels = {}
+    channels["THROTTLE"] = cfg["THREADS"]["RCIN_SERVO"]["THROTTLE_CHANNEL"]
+    channels["ELEVATOR"] = cfg["THREADS"]["RCIN_SERVO"]["ELEVATOR_CHANNEL"]
+    channels["AILERON"] = cfg["THREADS"]["RCIN_SERVO"]["AILERON_CHANNEL"]
+    channels["RUDDER"] = cfg["THREADS"]["RCIN_SERVO"]["RUDDER_CHANNEL"]
+    channels["FLAPS"] = cfg["THREADS"]["RCIN_SERVO"]["FLAPS_CHANNEL"]
+    channels["MODE"] = cfg["THREADS"]["RCIN_SERVO"]["FLIGHT_MODES"]["MODE_CHANNEL"]
+    return channels
 
 
 def check_calibration_date(filepath):
@@ -489,9 +486,7 @@ def check_calibration_date(filepath):
 def ask_proceed():
     print()
     while "the answer is invalid":
-        reply = (
-            str(input("Would you like to continue the launch? [Y/N]: ")).upper().strip()
-        )
+        reply = str(input("Would you like to continue the launch? [Y/N]: ")).upper().strip()
         if reply == "Y":
             print("Ok. Continuing...\n")
             return True
