@@ -1,6 +1,53 @@
-# PEAS
+<h1>PYTHON-BASED EDUCATIONAL AUTOPILOT SYSTEM</h1>
 
-Python-based Educational Autopilot System
+<br>
+
+## INSTALLATION / EXECUTION
+
+This should hopefully take care of everything:
+```
+cd PEAS/
+sudo python3 launch.py
+```
+- The `libjsoncpp-dev` apt package will be installed.
+- The `jsonschema` pip module will be installed.
+- The `sysv_ipc` pip module will be installed.
+- The mavlink submodule will be cloned if not already.
+- Note that some existing Navio2 libraries have been modified. Hence the Emlid submodule is not included.
+
+<br>
+
+To enable the program to launch on boot:
+  ```
+  cd PEAS/
+  sudo mv PEAS.service /lib/systemd/system/PEAS.service
+  sudo systemctl daemon-reload
+  sudo systemctl enable PEAS.service
+  sudo reboot
+  ```
+- First you may need to modify the paths in PEAS.service.
+- Use `top` or `sudo systemctl status PEAS.service` to see if the processes are running.
+- Use `sudo killall air` to terminate the program.
+
+<br>
+
+## TODO
+
+- IMU calibration
+  - Add calibration scripts, save results as binary file.
+    - Flatten vector and matrix into a list of doubles (row-major).
+  - Once we finish calibration I should remove `.bin` files and add tell git to ignore them.
+- Look into adding I2C sensors.
+- Add our own estimator and controller to core.
+- Maybe break up `air.cpp` into multiple files.
+- Update telemetry thread and maybe add some config settings for it.
+  - Figure out what to do with ADC data.
+- Try to anticipate potential issues and reduce the probability that `air.cpp` process will ever crash.
+- Test like every individual piece in different config scenarios.
+  - Especially servo thread since I don't know if RCIN and PWM scales are the same.
+- Documentation overview and config setting explanations.
+
+<br>
 
 ## DONE
 
@@ -29,39 +76,3 @@ Python-based Educational Autopilot System
 - Enabled logger to save incrementally in the event of a crash/shutdown.
 - Removed memory keys from config.json and hid them in core/keys.json.
 - Added system service for launching. Not sure if this is really what we want though.
-
-## TODO
-
-- IMU calibration
-  - Add calibration scripts, save results as binary file.
-    - Flatten vector and matrix into a list of doubles (row-major).
-  - Once we finish calibration I should remove `.bin` files and add tell git to ignore them.
-- Look into adding I2C sensors.
-- Add our own estimator and controller to core.
-- Maybe break up `air.cpp` into multiple files.
-- Update telemetry thread and maybe add some config settings for it.
-  - Figure out what to do with ADC data.
-- Try to anticipate potential issues and reduce the probability that `air.cpp` process will ever crash.
-- Test like every individual piece in different config scenarios.
-  - Especially servo thread since I don't know if RCIN and PWM scales are the same.
-- Documentation overview and config setting explanations.
-
-## INSTALLATION / EXECUTION
-
-- `cd PEAS/`
-- `sudo python3 launch.py` should hopefully take care of everything.
-  - The `libjsoncpp-dev` apt package will be installed.
-  - The `jsonschema` pip module will be installed.
-  - The `sysv_ipc` pip module will be installed.
-  - The mavlink submodule will be cloned if not already.
-- Note that some existing Navio2 libraries have been modified. Hence the Emlid submodule is not included.
-
-- To enable the program to launch on boot:
-  - `cd PEAS/`
-  - If needed, modify paths within the PEAS.service file.
-  - `sudo mv PEAS.service /lib/systemd/system/PEAS.service`
-  - `sudo systemctl daemon-reload`
-  - `sudo systemctl enable PEAS.service`
-  - `sudo reboot`
-  - Use `top` or `sudo systemctl status PEAS.service` to see if the processes are running.
-  - Use `sudo killall air` to terminate the program.
