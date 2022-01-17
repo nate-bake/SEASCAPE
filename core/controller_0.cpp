@@ -13,7 +13,7 @@ void* control_loop(void* arguments) {
     while (true) {
         start_time = current_time_microseconds();
         if (updates == array[keys[xh_vec + "UPDATES"]]) {
-            continue;
+            continue; // wait for new data
         }
         updates = array[keys[xh_vec + "UPDATES"]];
 

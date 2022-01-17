@@ -11,7 +11,12 @@ class helper:
         self.xh_updates = 0
 
     def read_y(self):
-        indexes = [self.keys[key] for key in self.keys.keys() if key.startswith("y_")]
+        indexes = []
+        for key in self.keys.keys():
+            if "ADC" in key:
+                continue  # not really important for estimator
+            if key.startswith("y_"):
+                indexes.append(self.keys[key])
         while True:
             y = [struct.unpack("d", self.shm.read(8, index * 8))[0] for index in indexes]
             if y[0] == self.imu_updates:

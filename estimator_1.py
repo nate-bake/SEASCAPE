@@ -10,9 +10,10 @@ def estimator_loop(mem: helper.helper, max_sleep: float):
     # mem.write_xh() will require a list of all values defined in the xh_1 vector in config.json
 
     while True:
-        initial_time = time.time()
+        t0 = time.time()
 
-        ############################### READ LATEST SENSOR DATA #################################
+        # read latest sensor data
+        # if you want to use IMU_2, be sure you have both IMUs enabled in config.json
         [
             NEW_GPS,
             IMU_1_AX,
@@ -24,7 +25,7 @@ def estimator_loop(mem: helper.helper, max_sleep: float):
             IMU_1_MAG_X,
             IMU_1_MAG_Y,
             IMU_1_MAG_Z,
-            IMU_2_AX,  # if you want to use IMU_2, be sure you have both IMUs enabled in config.json
+            IMU_2_AX,
             IMU_2_AY,
             IMU_2_AZ,
             IMU_2_GYRO_P,
@@ -34,7 +35,6 @@ def estimator_loop(mem: helper.helper, max_sleep: float):
             IMU_2_MAG_Y,
             IMU_2_MAG_Z,
             BARO_PRES,
-            BARO_INIT,
             GPS_POSN_LAT,
             GPS_POSN_LON,
             GPS_POSN_ALT,
@@ -42,33 +42,23 @@ def estimator_loop(mem: helper.helper, max_sleep: float):
             GPS_VEL_E,
             GPS_VEL_D,
             GPS_STATUS,
-            ADC_A0,
-            ADC_A1,
-            ADC_A2,
-            ADC_A3,
-            ADC_A4,
-            ADC_A5,
-            ADC_CONSUMED,
-            ADC_TIME,
         ] = mem.read_y()
 
-        ############################### READ PREVIOUS XH DATA ##################################
-
+        # read previous xh data
         [X, Y, Z, VT, ALPHA, BETA, PHI, THETA, PSI, P, Q, R] = mem.read_xh()
 
-        ############################# ESTIMATOR CODE STARTS HERE ###############################
+        # \/ \/ \/ \/ \/ \/ \/ \/ \/  ESTIMATOR CODE STARTS HERE  \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ #
 
-        # print(IMU_1_AX, IMU_2_AX)
         if NEW_GPS:
             pass  # estimation with gps
         else:
             pass  # estimation without gps
 
-        ############################### PUBLISH NEW XH DATA ##################################
+        # /\ /\ /\ /\ /\ /\ /\ /\ /\  ESTIMATOR CODE STOPS HERE  /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ #
 
+        # publish new xh data
         mem.write_xh([X, Y, Z, VT, ALPHA, BETA, PHI, THETA, PSI, P, Q, R])
 
-        ############################ SLEEP TO MAINTAIN FREQUENCY #############################
-
-        sleep_time = max_sleep - (time.time() - initial_time)
+        # sleep to maintain frequency
+        sleep_time = max_sleep - (time.time() - t0)
         time.sleep(max(sleep_time, 0))

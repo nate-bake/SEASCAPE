@@ -51,12 +51,17 @@ void* estimation_loop(void* arguments) {
             mz = mx * calibration_profile.matrix[2] + my * calibration_profile.matrix[5] + mz * calibration_profile.matrix[8];
         }
 
+        ////////////////////////////////////////////////////////////////
+
         if (gps != array[keys["y_GPS_UPDATES"]]) {
             gps = array[keys["y_GPS_UPDATES"]];
             // ESTIMATION WITH NEW GPS MEASUREMENT HERE
         } else {
             // ESTIMATION WITHOUT NEW GPS MEASUREMENT HERE
         }
+
+        ////////////////////////////////////////////////////////////////
+
         now = current_time_microseconds();
         int sleep_time = (int)(max_sleep - (now - start_time));
         usleep(std::max(sleep_time, 0));

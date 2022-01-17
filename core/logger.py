@@ -24,7 +24,7 @@ def get_log_keys(cfg, keys, channels):
     log_keys = {}
     for key in keys.keys():
         if key.startswith(tuple(vec_list)):
-            if "ADC" in key or "BARO_INIT" in key:
+            if "ADC" in key:
                 continue  # skip these columns to save storage.
             if "IMU_2" in key and (
                 (not cfg["THREADS"]["IMU_ADC"]["USE_LSM9DS1"]) or (not cfg["THREADS"]["IMU_ADC"]["USE_MPU9250"])
@@ -78,7 +78,7 @@ def logger_loop(shm, log_keys, interval, max_sleep):
 
         i = 0
         while True:
-            initial_time = time.time()
+            t0 = time.time()
             row = [struct.unpack("d", shm.read(8, index * 8))[0] for index in log_keys.values()]
             if mode_flag_index:
                 if row[mode_flag_index] == 0:
@@ -94,5 +94,5 @@ def logger_loop(shm, log_keys, interval, max_sleep):
                 data = []
                 i += 1
             else:
-                sleep_time = max_sleep - (time.time() - initial_time)
+                sleep_time = max_sleep - (time.time() - t0)
                 time.sleep(max(sleep_time, 0))

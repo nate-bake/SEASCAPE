@@ -16,28 +16,28 @@ def controller_loop(mem: shm.helper, max_sleep: float):
     # ---- these outputs do not go directly to the servo-rail. they are instead handled by the RCIN_SERVO thread.
 
     while True:
-        initial_time = time.time()
+        t0 = time.time()
 
-        ################################### READ LATEST DATA #####################################
-
+        # read latest data
         [X, Y, Z, VT, ALPHA, BETA, PHI, THETA, PSI, P, Q, R] = mem.read_xh()
         mem.read_rcin()
         mem.read_servos()
 
-        ############################## CONTROLLER CODE STARTS HERE ###############################
+        # \/ \/ \/ \/ \/ \/ \/ \/ \/  CONTROLLER CODE STARTS HERE  \/ \/ \/ \/ \/ \/ \/ \/ \/ \/ #
 
-        # adjust channel values
+        # manual passthrough
         mem.servos.throttle = mem.rcin.throttle
         mem.servos.flaps = mem.rcin.flaps
 
+        # adjusting channels
         mem.servos.aileron += 4
         mem.servos[8] -= 4
 
-        ################################ UPDATE CONTROLLER DATA ##################################
+        # /\ /\ /\ /\ /\ /\ /\ /\ /\  CONTROLLER CODE STOPS HERE  /\ /\ /\ /\ /\ /\ /\ /\ /\ /\ #
 
+        # update controller data
         mem.write_controller_1()
 
-        ############################# SLEEP TO MAINTAIN FREQUENCY ##############################
-
-        sleep_time = max_sleep - (time.time() - initial_time)
+        # sleep to maintain frequency
+        sleep_time = max_sleep - (time.time() - t0)
         time.sleep(max(sleep_time, 0))

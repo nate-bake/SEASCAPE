@@ -220,9 +220,6 @@ void* gps_baro_loop(void* arguments) {
                 barometer->readPressure();
                 barometer->calculatePressureAndTemperature();
                 array[keys["y_BARO_PRES"]] = barometer->getPressure();
-                if (array[keys["y_BARO_INIT"]] == 0) {
-                    array[keys["y_BARO_INIT"]] = array[keys["y_BARO_PRES"]];
-                }
                 array[keys["y_GPS_UPDATES"]]++;
                 barometer->refreshPressure();
             }
@@ -232,9 +229,6 @@ void* gps_baro_loop(void* arguments) {
             barometer->readPressure();
             barometer->calculatePressureAndTemperature();
             array[keys["y_BARO_PRES"]] = barometer->getPressure();
-            if (array[keys["y_BARO_INIT"]] == 0) {
-                array[keys["y_BARO_INIT"]] = array[keys["y_BARO_PRES"]];
-            }
             barometer->refreshPressure();
             now = current_time_microseconds();
             int sleep_time = (int)(max_sleep - (now - start_time));

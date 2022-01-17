@@ -74,7 +74,7 @@ def check_config():
     check_imu_calibration(cfg)
     check_mode_ranges(cfg)
     check_servo_channels(cfg)
-    keys = get_keys(cfg)
+    keys = get_keys()
     channels = get_servo_channels(cfg)
     return cfg, keys, channels
 
@@ -447,16 +447,17 @@ def check_mode_ranges(cfg):
         sys.exit()
 
 
-def get_keys(cfg):
+def get_keys():
+    v = json.load(open("core/keys.json"))
     i = 1
-    vectors = cfg["VECTORS"]
+    vectors = v["VECTORS"]
     keys = {}
     for v in vectors:
         ks = v["KEYS"]
         for k in ks:
             k = v["ID"] + "_" + k
             if k in keys.keys():
-                print(f"CONFIG ERROR: Duplicate keys '{k}' found in config.json.\n")
+                print(f"CONFIG ERROR: Duplicate keys '{k}' found in core/keys.json.\n")
                 sys.exit()
             keys[k] = i
             i += 1
