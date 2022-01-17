@@ -28,6 +28,7 @@ Python-based Educational Autopilot System
 - Enforced manual RC mode as default.
 - Enabled logger to save incrementally in the event of a crash/shutdown.
 - Removed memory keys from config.json and hid them in core/keys.json.
+- Added system service for launching. Not sure if this is really what we want though.
 
 ## TODO
 
@@ -54,3 +55,13 @@ Python-based Educational Autopilot System
   - The `sysv_ipc` pip module will be installed.
   - The mavlink submodule will be cloned if not already.
 - Note that some existing Navio2 libraries have been modified. Hence the Emlid submodule is not included.
+
+- To enable the program to launch on boot:
+  - `cd PEAS/`
+  - If needed, modify paths within the PEAS.service file.
+  - `sudo mv PEAS.service /lib/systemd/system/PEAS.service`
+  - `sudo systemctl daemon-reload`
+  - `sudo systemctl enable PEAS.service`
+  - `sudo reboot`
+  - Use `top` or `sudo systemctl status PEAS.service` to see if the processes are running.
+  - Use `sudo killall air` to terminate the program.
