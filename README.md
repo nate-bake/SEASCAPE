@@ -76,3 +76,23 @@ To enable the program to launch on boot:
 - Enabled logger to save incrementally in the event of a crash/shutdown.
 - Removed memory keys from config.json and hid them in core/keys.json.
 - Added system service for launching. Not sure if this is really what we want though.
+
+<br>
+
+## THREAD VISUALIZATION
+
+![](https://user-images.githubusercontent.com/34242063/149874441-a36b47b8-1806-4526-be47-73a8646add3b.png)
+
+- ![#F9B3A7](https://via.placeholder.com/15/F9B3A7/000000?text=+) &nbsp;Core Threads
+- ![#F14124](https://via.placeholder.com/15/F14124/000000?text=+) &nbsp;Custom Threads [*Python*]
+- ![#5ECCF3](https://via.placeholder.com/15/5ECCF3/000000?text=+) &nbsp;Shared Vectors
+- ![#BFBFBF](https://via.placeholder.com/15/BFBFBF/000000?text=+) &nbsp;I/O
+
+<br>
+
+- Individual threads can be toggled / adjusted by editing config.json.
+  - For example, one can configure CONTROLLER_0 to read from *xh_1* rather than *xh_0*.
+  - The RCIN_SERVO thread could also be configured to reference *controller_1* when in AUTO mode.
+- Note that each shared vector is only modified by one thread, mitigating risk of race conditions.
+- One additional 'LOGGER' thread is not depicted. It can access all vectors and produce a .csv file.
+
