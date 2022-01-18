@@ -33,7 +33,7 @@ To enable the program to launch on boot:
 
 ## THREAD VISUALIZATION
 
-![](https://user-images.githubusercontent.com/34242063/149874903-116fff78-2443-41aa-a64c-d59f9ca0749c.png)
+![](https://user-images.githubusercontent.com/34242063/149969070-b62c771c-7983-4c77-a262-f7d5475f1bd1.gif)
 
 - ![#F9B3A7](https://via.placeholder.com/15/F9B3A7/000000?text=+) &nbsp;Core Threads *[C++]*
 - ![#F14124](https://via.placeholder.com/15/F14124/000000?text=+) &nbsp;Custom Threads *[Python]*
@@ -42,10 +42,10 @@ To enable the program to launch on boot:
 
 <br>
 
-- Individual threads can be toggled / adjusted by editing config.json.
+- As seen above, individual threads can be toggled / adjusted by editing config.json.
   - For example, one can configure CONTROLLER_0 to read from *xh_1* rather than *xh_0*.
   - The RCIN_SERVO thread could also be configured to reference *controller_1* when in AUTO mode.
-- Note that each shared vector is modified by exactly one thread, mitigating risk of race conditions.
+- Each value within the shared vectors is modified by exactly one thread, mitigating risk of race conditions.
 - One additional 'LOGGER' thread is not depicted. It can access all vectors and produce a .csv file.
 
 <br>
