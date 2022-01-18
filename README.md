@@ -45,7 +45,7 @@ To enable the program to launch on boot:
 - Individual threads can be toggled / adjusted by editing config.json.
   - For example, one can configure CONTROLLER_0 to read from *xh_1* rather than *xh_0*.
   - The RCIN_SERVO thread could also be configured to reference *controller_1* when in AUTO mode.
-- Note that each shared vector is only modified by one thread, mitigating risk of race conditions.
+- Note that each shared vector is modified by exactly one thread, mitigating risk of race conditions.
 - One additional 'LOGGER' thread is not depicted. It can access all vectors and produce a .csv file.
 
 <br>
