@@ -42,7 +42,7 @@ To enable the program to launch on boot:
 
 <br>
 
-- As seen above, individual threads can be toggled / adjusted by editing config.json.
+- As seen above, individual threads can be toggled or adjusted via config.json.
   - For example, one can configure CONTROLLER_0 to read from *xh_1* rather than *xh_0*.
   - The RCIN_SERVO thread could also be configured to reference *controller_1* when in AUTO mode.
 - Each value within the shared vectors is modified by exactly one thread, mitigating risk of race conditions.
