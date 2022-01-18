@@ -3,8 +3,7 @@
     "LOGGER": {
       "DESCRIPTION": "Creates a log file when program terminates. Stores values from vectors selected below.",
       "ENABLED": true,
-      "RATE": 50,
-      "SAVE_INTERVAL": 5,
+      "RATE": 25,
       "LOG_SENSOR_DATA": true,
       "LOG_ESTIMATOR_0": true,
       "LOG_ESTIMATOR_1": false,

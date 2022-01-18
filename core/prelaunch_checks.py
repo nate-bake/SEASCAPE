@@ -92,7 +92,6 @@ def check_property_types(cfg):
                         "properties": {
                             "ENABLED": {"type": "boolean"},
                             "RATE": {"type": "number"},
-                            "SAVE_INTERVAL": {"type": "number"},
                             "LOG_SENSOR_DATA": {"type": "boolean"},
                             "LOG_ESTIMATOR_0": {"type": "boolean"},
                             "LOG_ESTIMATOR_1": {"type": "boolean"},
@@ -103,7 +102,6 @@ def check_property_types(cfg):
                         "required": [
                             "ENABLED",
                             "RATE",
-                            "SAVE_INTERVAL",
                             "LOG_SENSOR_DATA",
                             "LOG_ESTIMATOR_0",
                             "LOG_ESTIMATOR_1",

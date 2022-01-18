@@ -13,9 +13,12 @@ public:
     double ESTIMATION_LOOP_RATE;
     double CONTROL_LOOP_RATE;
     double TELEMETRY_LOOP_RATE;
+    double LOGGER_LOOP_RATE;
 
-    bool ESTIMATOR_ENABLED;
-    bool CONTROLLER_ENABLED;
+    bool ESTIMATOR_0_ENABLED;
+    bool CONTROLLER_0_ENABLED;
+    bool ESTIMATOR_1_ENABLED;
+    bool CONTROLLER_1_ENABLED;
     int CONTROLLER_XH;
     int SERVO_CONTROLLER;
     bool SERVO_LOOP_ENABLED;
@@ -29,6 +32,13 @@ public:
     bool GPS_ENABLED;
     std::string PRIMARY_IMU;
     bool USE_IMU_CALIBRATION;
+    bool LOGGER_LOOP_ENABLED;
+    bool LOG_SENSOR_DATA;
+    bool LOG_ESTIMATOR_0;
+    bool LOG_ESTIMATOR_1;
+    bool LOG_CONTROLLER_0;
+    bool LOG_CONTROLLER_1;
+    bool LOG_RCIN_SERVO;
 
     float PWM_FREQUENCY;
     int MIN_THROTTLE;

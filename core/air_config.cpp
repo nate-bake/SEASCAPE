@@ -23,9 +23,12 @@ air_config::air_config() {
     ESTIMATION_LOOP_RATE = threads["ESTIMATOR_0"]["RATE"].asDouble();
     CONTROL_LOOP_RATE = threads["CONTROLLER_0"]["RATE"].asDouble();
     TELEMETRY_LOOP_RATE = threads["TELEMETRY"]["RATE"].asDouble();
+    LOGGER_LOOP_RATE = threads["LOGGER"]["RATE"].asDouble();
 
-    ESTIMATOR_ENABLED = threads["ESTIMATOR_0"]["ENABLED"].asBool();
-    CONTROLLER_ENABLED = threads["CONTROLLER_0"]["ENABLED"].asBool();
+    ESTIMATOR_0_ENABLED = threads["ESTIMATOR_0"]["ENABLED"].asBool();
+    CONTROLLER_0_ENABLED = threads["CONTROLLER_0"]["ENABLED"].asBool();
+    ESTIMATOR_1_ENABLED = threads["ESTIMATOR_1"]["ENABLED"].asBool();
+    CONTROLLER_1_ENABLED = threads["CONTROLLER_1"]["ENABLED"].asBool();
     CONTROLLER_XH = threads["CONTROLLER_0"]["XH_VECTOR_TO_USE"].asInt();
     SERVO_CONTROLLER = threads["RCIN_SERVO"]["CONTROLLER_VECTOR_TO_USE"].asInt();
     SERVO_LOOP_ENABLED = threads["RCIN_SERVO"]["ENABLED"].asBool();
@@ -46,6 +49,13 @@ air_config::air_config() {
             PRIMARY_IMU = "LSM9DS1";
         }
     }
+
+    LOGGER_LOOP_ENABLED = threads["LOGGER"]["ENABLED"].asBool();
+    LOG_ESTIMATOR_0 = threads["LOGGER"]["LOG_ESTIMATOR_0"].asBool();
+    LOG_ESTIMATOR_1 = threads["LOGGER"]["LOG_ESTIMATOR_1"].asBool();
+    LOG_CONTROLLER_0 = threads["LOGGER"]["LOG_CONTROLLER_0"].asBool();
+    LOG_CONTROLLER_1 = threads["LOGGER"]["LOG_CONTROLLER_1"].asBool();
+    LOG_RCIN_SERVO = threads["LOGGER"]["LOG_RCIN_SERVO"].asBool();
 
     PWM_FREQUENCY = threads["RCIN_SERVO"]["PWM_FREQUENCY"].asInt();
     MIN_THROTTLE = threads["RCIN_SERVO"]["MIN_THROTTLE"].asInt();

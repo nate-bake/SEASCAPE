@@ -47,3 +47,4 @@ struct thread_struct {
 
 void* estimation_loop(void* arguments);
 void* control_loop(void* arguments);
+void* logger_loop(void* arguments);

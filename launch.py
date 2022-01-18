@@ -35,18 +35,6 @@ if __name__ == "__main__":
 
     print()
 
-    if cfg["THREADS"]["LOGGER"]["ENABLED"]:
-        max_sleep_logger = 1.0 / cfg["THREADS"]["LOGGER"]["RATE"]
-        log_keys = logger.get_log_keys(cfg, keys, channels)
-        interval = cfg["THREADS"]["LOGGER"]["SAVE_INTERVAL"]
-        logger_process = multiprocessing.Process(
-            target=logger.logger_loop,
-            args=(shm, log_keys, interval, max_sleep_logger),
-        )
-        logger_process.daemon = True
-        logger_process.start()
-        print(f"Logger process has started.\t\t[PID:{logger_process.pid}]")
-
     if cfg["THREADS"]["ESTIMATOR_1"]["ENABLED"]:
         mem_est1 = shared_mem_helper_estimator_1.helper(shm, keys)
         max_sleep_est1 = 1.0 / cfg["THREADS"]["ESTIMATOR_1"]["RATE"]
@@ -55,7 +43,7 @@ if __name__ == "__main__":
         )
         estimator_1_process.daemon = True
         estimator_1_process.start()
-        print(f"Estimator_1 process has started.\t[PID:{estimator_1_process.pid}]")
+        print(f"Estimator_1 process has launched.\t[PID:{estimator_1_process.pid}]")
 
     if cfg["THREADS"]["CONTROLLER_1"]["ENABLED"]:
 
@@ -67,7 +55,7 @@ if __name__ == "__main__":
         )
         controller_1_process.daemon = True
         controller_1_process.start()
-        print(f"Controller_1 process has started.\t[PID:{controller_1_process.pid}]")
+        print(f"Controller_1 process has launched.\t[PID:{controller_1_process.pid}]")
 
     print()
 

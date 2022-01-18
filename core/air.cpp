@@ -429,6 +429,7 @@ int main(int argc, char* argv[]) {
     pthread_t estimation_thread;
     pthread_t control_thread;
     pthread_t telemetry_thread;
+    pthread_t logger_thread;
 
     struct thread_struct thread_args;
     thread_args.array = array;
@@ -446,17 +447,21 @@ int main(int argc, char* argv[]) {
         pthread_create(&servo_thread, NULL, &servo_loop, (void*)&thread_args);
     }
     usleep(2000000);
-    if (cfg.ESTIMATOR_ENABLED) {
+    if (cfg.ESTIMATOR_0_ENABLED) {
         pthread_create(&estimation_thread, NULL, &estimation_loop, (void*)&thread_args);
         printf("Starting estimator_0 thread.\n");
     }
-    if (cfg.CONTROLLER_ENABLED) {
+    if (cfg.CONTROLLER_0_ENABLED) {
         pthread_create(&control_thread, NULL, &control_loop, (void*)&thread_args);
         printf("Starting controller_0 thread.\n");
     }
     if (cfg.TELEMETRY_LOOP_ENABLED) {
         pthread_create(&telemetry_thread, NULL, &telemetry_loop, (void*)&thread_args);
         printf("Starting telemetry thread.\n");
+    }
+    if (cfg.LOGGER_LOOP_ENABLED) {
+        pthread_create(&logger_thread, NULL, &logger_loop, (void*)&thread_args);
+        printf("Starting logger thread.\n");
     }
 
     if (cfg.IMU_LOOP_ENABLED) {
@@ -468,14 +473,17 @@ int main(int argc, char* argv[]) {
     if (cfg.SERVO_LOOP_ENABLED) {
         pthread_join(servo_thread, NULL);
     }
-    if (cfg.ESTIMATOR_ENABLED) {
+    if (cfg.ESTIMATOR_0_ENABLED) {
         pthread_join(estimation_thread, NULL);
     }
-    if (cfg.CONTROLLER_ENABLED) {
+    if (cfg.CONTROLLER_0_ENABLED) {
         pthread_join(control_thread, NULL);
     }
     if (cfg.TELEMETRY_LOOP_ENABLED) {
         pthread_join(telemetry_thread, NULL);
+    }
+    if (cfg.LOGGER_LOOP_ENABLED) {
+        pthread_join(logger_thread, NULL);
     }
 
     return 0;
