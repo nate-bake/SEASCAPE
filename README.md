@@ -33,7 +33,7 @@ To enable the program to launch on boot:
 
 ## THREAD VISUALIZATION
 
-![](https://user-images.githubusercontent.com/34242063/150004858-f0c9aab1-c249-45b4-8ec8-7e5d22904a34.gif)
+![](https://user-images.githubusercontent.com/34242063/150005625-8044cee0-8943-4621-b3b4-0b7106844cb8.gif)
 
 - ![#F9B3A7](https://via.placeholder.com/15/F9B3A7/000000?text=+) &nbsp;Core Threads *[C++]*
 - ![#F14124](https://via.placeholder.com/15/F14124/000000?text=+) &nbsp;Custom Threads *[Python]*
