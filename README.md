@@ -35,8 +35,8 @@ To enable the program to launch on boot:
 
 ![](https://user-images.githubusercontent.com/34242063/149874441-a36b47b8-1806-4526-be47-73a8646add3b.png)
 
-- ![#F9B3A7](https://via.placeholder.com/15/F9B3A7/000000?text=+) &nbsp;Core Threads [*C++*]
-- ![#F14124](https://via.placeholder.com/15/F14124/000000?text=+) &nbsp;Custom Threads [*Python*]
+- ![#F9B3A7](https://via.placeholder.com/15/F9B3A7/000000?text=+) &nbsp;Core Threads *[C++]*
+- ![#F14124](https://via.placeholder.com/15/F14124/000000?text=+) &nbsp;Custom Threads *[Python]*
 - ![#5ECCF3](https://via.placeholder.com/15/5ECCF3/000000?text=+) &nbsp;Shared Vectors
 - ![#BFBFBF](https://via.placeholder.com/15/BFBFBF/000000?text=+) &nbsp;I/O
 
