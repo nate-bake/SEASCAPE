@@ -1,4 +1,5 @@
 #include "air.h"
+#include <sstream>
 
 bool replace(std::string& str, const std::string& from, const std::string& to) {
     size_t start_pos = str.find(from);
@@ -68,6 +69,16 @@ std::map<int, std::string> get_log_keys(const air_config* cfg, std::map<std::str
                     replace(column_name, "CHANNEL_" + std::to_string(cfg->FLAPS_CHANNEL), "FLAPS");
                 } else if (hasEnding(column_name, "CHANNEL_" + std::to_string(cfg->FLIGHT_MODE_CHANNEL))) {
                     replace(column_name, "CHANNEL_" + std::to_string(cfg->FLIGHT_MODE_CHANNEL), "MODE");
+                } else if (column_name.find("CHANNEL_") != std::string::npos) {
+                    // need to increment channel to have 1-based indexing in log.
+                    std::stringstream ss(column_name);
+                    std::string segment;
+                    while (std::getline(ss, segment, '_'));
+                    try {
+                        int c = std::stoi(segment) + 1;
+                        replace(column_name, segment, std::to_string(c));
+                    }
+                    catch (...) { continue; }
                 }
                 log_keys.insert(std::pair<int, std::string>(k.second, column_name));
             }
@@ -81,7 +92,7 @@ void* logger_loop(void* arguments) {
     double* array = args->array;
     const air_config* cfg = args->cfg;
     std::map<std::string, int> keys = cfg->keys;
-    usleep(500000);
+    usleep(3000000);
     int max_sleep = hertz_to_microseconds(cfg->LOGGER_LOOP_RATE);
     static char filename[36];
     time_t filename_time = time(0);

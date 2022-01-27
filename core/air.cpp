@@ -115,12 +115,12 @@ int read_adc(ADC* adc, double* array, std::map<std::string, int>& keys) {
     array[keys["y_ADC_A3"]] = ((double)(adc->read(3))) / 1000;
     array[keys["y_ADC_A4"]] = ((double)(adc->read(4))) / 1000;
     array[keys["y_ADC_A5"]] = ((double)(adc->read(5))) / 1000;
-    uint64_t us = current_time_microseconds();
-    double now = ((double)(us % 1000000000000)) / 1000000;
-    if (array[keys["y_ADC_TIME"]] != 0.) {
-        array[keys["y_ADC_CONSUMED"]] += array[keys["y_ADC_A3"]] * 1000 * (now - array[keys["y_ADC_TIME"]]) / 3600;
-    }
-    array[keys["y_ADC_TIME"]] = now;
+    // uint64_t us = current_time_microseconds();
+    // double now = ((double)(us % 1000000000000)) / 1000000;
+    // if (array[keys["y_ADC_TIME"]] != 0.) {
+    //     array[keys["y_ADC_CONSUMED"]] += array[keys["y_ADC_A3"]] * 1000 * (now - array[keys["y_ADC_TIME"]]) / 3600;
+    // }
+    // array[keys["y_ADC_TIME"]] = now;
     return 0;
 }
 
@@ -134,9 +134,27 @@ int read_rcin(RCInput* rcin, double* array, std::map<std::string, int>& keys) {
 int write_servo(RCOutput* pwm, double* array, const air_config* cfg) {
     std::map<std::string, int> keys = cfg->keys;
     std::string controller_vec = "controller_" + std::to_string(cfg->SERVO_CONTROLLER) + "_";
-    int mode_pwm = (int)array[keys["rcin_CHANNEL_" + std::to_string(cfg->FLIGHT_MODE_CHANNEL)]];
-    if (cfg->AUTO_MODE_MIN <= mode_pwm && mode_pwm < cfg->AUTO_MODE_MAX) {
-        array[keys["servo_MODE_FLAG"]] = 2; //mode_flag: auto
+    int mode_value = (int)array[keys["rcin_CHANNEL_" + std::to_string(cfg->FLIGHT_MODE_CHANNEL)]];
+    array[keys["servo_MODE_FLAG"]] = 0; // manual
+    if ((cfg->SERVO_CONTROLLER == 0 && !cfg->CONTROLLER_0_ENABLED) || (cfg->SERVO_CONTROLLER == 1 && !cfg->CONTROLLER_1_ENABLED)) {
+        // stay in manual mode no matter what.
+    } else if (cfg->AUTO_MODE_MIN <= mode_value && mode_value < cfg->AUTO_MODE_MAX) {
+        array[keys["servo_MODE_FLAG"]] = 2; // auto
+    } else if (cfg->SEMI_MODE_MIN <= mode_value && mode_value < cfg->SEMI_MODE_MAX) {
+        array[keys["servo_MODE_FLAG"]] = 1; // semi-auto
+    }
+    if (array[keys["servo_MODE_FLAG"]] == 0) { // manual
+        for (int i = 0; i < 14; i++) {
+            float new_pwm = array[keys["rcin_CHANNEL_" + std::to_string(i)]];
+            if (i == cfg->THROTTLE_CHANNEL) {
+                new_pwm = clip_throttle(cfg, (int)new_pwm);
+            } else {
+                new_pwm = clip_servo(cfg, (int)new_pwm);
+            }
+            pwm->set_duty_cycle(i, new_pwm);
+            array[keys["servo_CHANNEL_" + std::to_string(i)]] = (double)new_pwm;
+        }
+    } else if (array[keys["servo_MODE_FLAG"]] == 2) { // auto
         for (int i = 0; i < 14; i++) {
             float new_pwm = array[keys[controller_vec + std::to_string(i)]];
             if (i == cfg->THROTTLE_CHANNEL) {
@@ -147,8 +165,7 @@ int write_servo(RCOutput* pwm, double* array, const air_config* cfg) {
             pwm->set_duty_cycle(i, new_pwm);
             array[keys["servo_CHANNEL_" + std::to_string(i)]] = (double)new_pwm;
         }
-    } else if (cfg->SEMI_MODE_MIN <= mode_pwm && mode_pwm < cfg->SEMI_MODE_MAX) {
-        array[keys["servo_MODE_FLAG"]] = 1; //mode_flag: semi-auto
+    } else if (array[keys["servo_MODE_FLAG"]] == 1) { // semi-auto
         bool man_override = false;
         double el = array[keys["rcin_CHANNEL_" + std::to_string(cfg->ELEVATOR_CHANNEL)]];
         double al = array[keys["rcin_CHANNEL_" + std::to_string(cfg->AILERON_CHANNEL)]];
@@ -178,18 +195,6 @@ int write_servo(RCOutput* pwm, double* array, const air_config* cfg) {
                 array[keys["servo_CHANNEL_" + std::to_string(i)]] = (double)new_pwm;
             }
         }
-    } else {
-        array[keys["servo_MODE_FLAG"]] = 0; // mode_flag: manual
-        for (int i = 0; i < 14; i++) {
-            float new_pwm = array[keys["rcin_CHANNEL_" + std::to_string(i)]];
-            if (i == cfg->THROTTLE_CHANNEL) {
-                new_pwm = clip_throttle(cfg, (int)new_pwm);
-            } else {
-                new_pwm = clip_servo(cfg, (int)new_pwm);
-            }
-            pwm->set_duty_cycle(i, new_pwm);
-            array[keys["servo_CHANNEL_" + std::to_string(i)]] = (double)new_pwm;
-        }
     }
     return 0;
 }
@@ -216,24 +221,17 @@ void* gps_baro_loop(void* arguments) {
     while (true) {
         start_time = current_time_microseconds();
         if (cfg->GPS_ENABLED && gps->decodeMessages(array, keys)) {
-            if (cfg->MS5611_ENABLED) {
-                barometer->readPressure();
-                barometer->calculatePressureAndTemperature();
-                array[keys["y_BARO_PRES"]] = barometer->getPressure();
-                array[keys["y_GPS_UPDATES"]]++;
-                barometer->refreshPressure();
-            }
-            now = current_time_microseconds();
-            usleep(max_sleep - (now - start_time));
-        } else if (!cfg->GPS_ENABLED && cfg->MS5611_ENABLED) {
+            array[keys["y_GPS_UPDATES"]]++;
+        }
+        if (cfg->MS5611_ENABLED) {
+            barometer->refreshPressure();
+            usleep(10000);
             barometer->readPressure();
             barometer->calculatePressureAndTemperature();
             array[keys["y_BARO_PRES"]] = barometer->getPressure();
-            barometer->refreshPressure();
-            now = current_time_microseconds();
-            int sleep_time = (int)(max_sleep - (now - start_time));
-            usleep(std::max(sleep_time, 0));
         }
+        now = current_time_microseconds();
+        usleep(max_sleep - (now - start_time));
     }
 }
 
@@ -411,10 +409,10 @@ int main(int argc, char* argv[]) {
 
     for (int i = 0; i < 14; i++) { // set initial pwm values
         if (i == cfg.THROTTLE_CHANNEL) {
-            array[cfg.keys.at("rcin_CHANNEL_" + std::to_string(i))] = 0.0;
-            array[cfg.keys.at("controller_0_CHANNEL_" + std::to_string(i))] = 0.0;
-            array[cfg.keys.at("controller_1_CHANNEL_" + std::to_string(i))] = 0.0;
-            array[cfg.keys.at("servo_CHANNEL_" + std::to_string(i))] = 0.0;
+            array[cfg.keys.at("rcin_CHANNEL_" + std::to_string(i))] = 1000.0;
+            array[cfg.keys.at("controller_0_CHANNEL_" + std::to_string(i))] = 1000.0;
+            array[cfg.keys.at("controller_1_CHANNEL_" + std::to_string(i))] = 1000.0;
+            array[cfg.keys.at("servo_CHANNEL_" + std::to_string(i))] = 1000.0;
         } else {
             array[cfg.keys.at("rcin_CHANNEL_" + std::to_string(i))] = 1500.0;
             array[cfg.keys.at("controller_0_CHANNEL_" + std::to_string(i))] = 1500.0;

@@ -7,8 +7,6 @@ from core import shared_mem_helper_estimator_1
 from core import shared_mem_helper_controller_1
 import estimator_1
 import controller_1
-from core import logger
-
 
 if __name__ == "__main__":
 
@@ -30,8 +28,7 @@ if __name__ == "__main__":
     ftok_path = "core/air.h"
     key = ipc.ftok(ftok_path, ord("~"), silence_warning=True)
     shm = ipc.SharedMemory(key, 0, 0)
-    # attach to shared memory created by core/air
-    shm.attach(0, 0)
+    shm.attach(0, 0)  # attach to shared memory created by core/air
 
     print()
 

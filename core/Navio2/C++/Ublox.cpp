@@ -504,13 +504,9 @@ int Ublox::decodeMessages(double* array, std::map<std::string, int>& keys) {
             default:
                 break;
             }
-            // std::cout << count << std::endl;
             if (posllh && status && velned) {
-                // BAROMETER STUFF HERE ??
-                // position_data[0]++;
                 return 1;
             }
-            // std::cout << posllh << " " << status << " " << velned << std::endl;
             scanner->reset();
             count = 0;
         }

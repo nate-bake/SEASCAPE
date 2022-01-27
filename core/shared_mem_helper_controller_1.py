@@ -1,5 +1,6 @@
 import struct
 import time
+import numpy as np
 
 
 class channel:
@@ -15,15 +16,17 @@ class channel:
         return instance[c]
 
 
-class channel_vector(list):
+class channel_vector(np.ndarray):
     throttle = channel("THROTTLE")
     elevator = channel("ELEVATOR")
     aileron = channel("AILERON")
     rudder = channel("RUDDER")
     flaps = channel("FLAPS")
 
-    def __init__(self, channels):
-        self.channels = channels
+    def __new__(cls, input_array, channels=None):
+        obj = np.asarray(input_array).view(cls)
+        obj.channels = channels
+        return obj
 
     def __getitem__(self, key):
         return super(channel_vector, self).__getitem__(key)
@@ -34,8 +37,10 @@ class helper:
         self.shm = shm
         self.keys = keys
         self.vector = vector  # identifies which xh vector is being used.
-        self.rcin = channel_vector(channels)
-        self.servos = channel_vector(channels)
+        np_rcin = np.zeros(15)
+        np_servos = np.zeros(15)
+        self.rcin = channel_vector(np_rcin, channels)
+        self.servos = channel_vector(np_servos, channels)
         self.updates = 0
 
     def read_xh(self):
@@ -50,15 +55,15 @@ class helper:
 
     def read_rcin(self):
         indexes = [self.keys[key] for key in self.keys.keys() if key.startswith(f"rcin_CHANNEL_")]
-        self.rcin[:] = [struct.unpack("d", self.shm.read(8, index * 8))[0] for index in indexes]
+        self.rcin[1:] = [struct.unpack("d", self.shm.read(8, index * 8))[0] for index in indexes]
         return self.rcin
 
     def read_servos(self):
         indexes = [self.keys[key] for key in self.keys.keys() if key.startswith(f"servo_CHANNEL_")]
-        self.servos[:] = [struct.unpack("d", self.shm.read(8, index * 8))[0] for index in indexes]
+        self.servos[1:] = [struct.unpack("d", self.shm.read(8, index * 8))[0] for index in indexes]
         return self.servos
 
     def write_controller_1(self):
         indexes = [self.keys[key] for key in self.keys.keys() if key.startswith("controller_1_")]
         for i in range(len(indexes)):
-            self.shm.write(struct.pack("d", self.servos[i]), indexes[i] * 8)
+            self.shm.write(struct.pack("d", self.servos[i + 1]), indexes[i] * 8)

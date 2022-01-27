@@ -3,7 +3,7 @@
     "LOGGER": {
       "DESCRIPTION": "Creates a log file when program terminates. Stores values from vectors selected below.",
       "ENABLED": true,
-      "RATE": 25,
+      "RATE": 50,
       "LOG_SENSOR_DATA": true,
       "LOG_ESTIMATOR_0": true,
       "LOG_ESTIMATOR_1": false,
@@ -39,16 +39,12 @@
       "RATE": 100,
       "USE_LSM9DS1": true,
       "USE_MPU9250": true,
-      "PRIMARY_IMU": "MPU9250",
-      "APPLY_CALIBRATION_PROFILE": true,
-      "USE_ADC": true
+      "PRIMARY_IMU": "MPU9250"
     },
     "GPS_BAROMETER": {
       "DESCRIPTION": "Handles sensor reads from the connected GPS and onboard barometer. Updates y vector.",
       "ENABLED": true,
-      "RATE": 5,
-      "USE_GPS": true,
-      "USE_MS5611": true
+      "RATE": 10
     },
     "RCIN_SERVO": {
       "DESCRIPTION": "Handles reads from RC transmitter and sets servo-rail PWM values. Updates rcin and servo vectors.",
@@ -56,13 +52,13 @@
       "RATE": 50,
       "PWM_FREQUENCY": 50,
       "CONTROLLER_VECTOR_TO_USE": 0,
-      "THROTTLE_CHANNEL": 0,
-      "AILERON_CHANNEL": 1,
-      "ELEVATOR_CHANNEL": 2,
-      "RUDDER_CHANNEL": 3,
-      "FLAPS_CHANNEL": 5,
+      "THROTTLE_CHANNEL": 1,
+      "AILERON_CHANNEL": 2,
+      "ELEVATOR_CHANNEL": 3,
+      "RUDDER_CHANNEL": 4,
+      "FLAPS_CHANNEL": 6,
       "FLIGHT_MODES": {
-        "MODE_CHANNEL": 4,
+        "MODE_CHANNEL": 5,
         "NOTE": "Ranges include the lower value, but exclude the upper value. Default mode is manual.",
         "MANUAL_RANGE": {
           "LOW": 750,
@@ -78,7 +74,7 @@
           "HIGH": 2250
         }
       },
-      "MIN_THROTTLE": 0,
+      "MIN_THROTTLE": 1000,
       "MAX_THROTTLE": 1750,
       "MIN_SERVO": 1250,
       "MAX_SERVO": 1750

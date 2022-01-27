@@ -1,14 +1,21 @@
-<h1>PYTHON-BASED EDUCATIONAL AUTOPILOT SYSTEM</h1>
+<h1><b>SEASCAPE</b> -- SIMPLE EDUCATIONAL AUTOPILOT SYSTEM with C++ ARCHITECTURE & PYTHON EXTERIOR</h1>
+
+This repository contains a user-friendly solution for testing new autopilot algorithms on a RaspberryPi.
+It is designed to utilize the sensors present on the <a href="https://navio2.emlid.com/">Navio2 Autopilot HAT</a>, and was built around the <a href="https://docs.emlid.com/navio2/dev/navio-repository-cloning/">drivers and examples provided by Emlid.</a><br>
+This system handles sensor interaction and provides data from GPS, barometer, and both onboard IMUs. It also contains built-in implementations of estimation and control algorithms, providing a basis for comparison and facilitating flight tests. These core functions are implemented in a multithreaded C++ process to optimize performance, and additional Python processes are provided for a implementing custom estimator and controller. The multithreaded structure adds modularity to the system which allows users to adjust the configuration via JSON properties.
 
 <br>
 
 ## INSTALLATION / EXECUTION
 
-This should hopefully take care of everything:
+After cloning, the launch file should hopefully take care of everything:
+
 ```
-cd PEAS/
+git clone <URL-HERE>/SEASCAPE.git
+cd SEASCAPE/
 sudo python3 launch.py
 ```
+
 - The `libjsoncpp-dev` apt package will be installed.
 - The `jsonschema` pip module will be installed.
 - The `sysv_ipc` pip module will be installed.
@@ -18,15 +25,17 @@ sudo python3 launch.py
 <br>
 
 To enable the program to launch on boot:
-  ```
-  cd PEAS/
-  sudo mv PEAS.service /lib/systemd/system/PEAS.service
-  sudo systemctl daemon-reload
-  sudo systemctl enable PEAS.service
-  sudo reboot
-  ```
-- First you may need to modify the paths in PEAS.service.
-- Use `top` or `sudo systemctl status PEAS.service` to see if the processes are running.
+
+```
+cd SEASCAPE/
+sudo mv SEASCAPE.service /lib/systemd/system/SEASCAPE.service
+sudo systemctl daemon-reload
+sudo systemctl enable SEASCAPE.service
+sudo reboot
+```
+
+- First you may need to modify the paths in SEASCAPE.service.
+- Use `top` or `sudo systemctl status SEASCAPE.service` to see if the processes are running.
 - Use `sudo killall air` to terminate the program.
 
 <br>
@@ -35,18 +44,87 @@ To enable the program to launch on boot:
 
 ![](https://user-images.githubusercontent.com/34242063/150006000-1938b67f-508f-4560-9350-cd1173a39e58.gif)
 
-- ![#F9B3A7](https://via.placeholder.com/15/F9B3A7/000000?text=+) &nbsp;Core Threads *[C++]*
-- ![#F14124](https://via.placeholder.com/15/F14124/000000?text=+) &nbsp;Custom Threads *[Python]*
+- ![#F9B3A7](https://via.placeholder.com/15/F9B3A7/000000?text=+) &nbsp;Core Threads _[C++]_
+- ![#F14124](https://via.placeholder.com/15/F14124/000000?text=+) &nbsp;Custom Threads _[Python]_
 - ![#5ECCF3](https://via.placeholder.com/15/5ECCF3/000000?text=+) &nbsp;Shared Vectors
 - ![#BFBFBF](https://via.placeholder.com/15/BFBFBF/000000?text=+) &nbsp;I/O
 
 <br>
 
 - As seen above, individual threads can be toggled or adjusted via `config.json`.
-  - For example, one can configure CONTROLLER_0 to read from *xh_1* rather than *xh_0*.
-  - The RCIN_SERVO thread could also be configured to reference *controller_1* when in AUTO mode.
+  - For example, one can elect to use the built-in controller in conjunction with the custom estimator.
 - Each value within the shared vectors is modified by exactly one thread, mitigating risk of race conditions.
-- One additional 'LOGGER' thread is not depicted. It can access all vectors and produce a .csv file.
+- One additional 'LOGGER' thread is not depicted. It can access all vectors and produce a CSV file.
+
+<br>
+
+## THREAD DETAILS
+
+### IMU_ADC
+
+- Reads the following data and stores it in the `y` vector.
+  - Accelerometer, gyroscope, and magnetometer data from both onboard IMUs [*LSM9DS1, MPU9250*].
+  - Voltage from board, servo rail, and power connector.
+- Config settings:
+  - `"ENABLED": true`
+  - `"RATE": 100`
+  - `"USE_LSM9DS1": true`
+  - `"USE_MPU9250": true`
+  - `"USE_ADC": true`
+  - `"PRIMARY_IMU": "MPU9250"`
+    - If both onboard IMUs are enabled, this will dictate which is considered _IMU_1_.
+
+### GPS_BARO
+
+- Reads the following data and stores it in the `y` vector.
+  - GPS position, velocity, and fix status.
+  - Pressure reading from onboard barometer [*MS5611*].
+- Config settings:
+  - `"ENABLED": true`
+  - `"RATE": 10`
+    - Loop frequency defined in hertz. Note that rates > 20 are likely unattainable for these sensors.
+  - `"USE_GPS": true`
+  - `"USE_MS5611": true`
+
+### RCIN_SERVO
+
+- Reads RCInput values for each channel and stores it in the `rcin` vector.
+- Determines flight mode from specified RCInput channel.
+  - If flight mode is MANUAL, update servo-rail PWM from RCInput values.
+    - MANUAL mode is the default mode.
+  - If flight mode is AUTO, update servo-rail PWM from specified controller vector.
+  - If flight mode is SEMI-AUTO, behave like auto mode unless RCInput joysticks are not centered.
+- Config settings:
+  - `"ENABLED": true,`
+  - `"RATE": 50,`
+    - Loop frequency defined in hertz. Should be <= PWM_FREQUENCY.
+  - `"PWM_FREQUENCY": 50,`
+    - Rate at which PWM pulses are sent.
+  - `"CONTROLLER_VECTOR_TO_USE": 0,`
+    - Controller to reference when in AUTO mode. Either 0 or 1.
+    - If the specified controller is not enabled, only MANUAL mode will be available.
+  - The following channels are needed for logging and built-in controller purposes. Valid range: [1,14].
+    - `"THROTTLE_CHANNEL": 1,`
+    - `"AILERON_CHANNEL": 2,`
+    - `"ELEVATOR_CHANNEL": 3,`
+    - `"RUDDER_CHANNEL": 4,`
+    - `"FLAPS_CHANNEL": 6,`
+    - `"FLIGHT_MODES/MODE_CHANNEL": 5,`
+      - RC channel which is used to determine flight mode.
+  - Flight mode ranges defined below are lower-limit inclusive, upper-limit exclusive:
+    - `"FLIGHT_MODES/MANUAL_RANGE/LOW": 750,`
+    - `"FLIGHT_MODES/MANUAL_RANGE/HIGH": 1250`
+    - `"FLIGHT_MODES/SEMI-AUTO_RANGE/LOW": 1250,`
+    - `"FLIGHT_MODES/SEMI-AUTO_RANGE/HIGH": 1750`
+    - `"FLIGHT_MODES/AUTO_RANGE/LOW": 1750,`
+    - `"FLIGHT_MODES/AUTO_RANGE/HIGH": 2250`
+  - `"FLIGHT_MODES/SEMI-AUTO_RANGE/DEADZONE": 50`
+    - Amount required to move either AILERON or ELEVATOR away from 1500 to take manual control.
+  - The following are used to clip RCInput and Controller channel values before sending to servo-rail.
+    - `"MIN_THROTTLE": 1000`
+    - `"MAX_THROTTLE": 1750`
+    - `"MIN_SERVO": 1250`
+    - `"MAX_SERVO": 1750`
 
 <br>
 
@@ -54,44 +132,21 @@ To enable the program to launch on boot:
 
 - IMU calibration
   - Add calibration scripts, save results as binary file.
+    - Can do it in Python rather than C++.
     - Flatten vector and matrix into a list of doubles (row-major).
+  - Should it be part of pre-launch process, or stand-alone?
   - Once we finish calibration I should remove `.bin` files and add tell git to ignore them.
+- Telemetry
+  - Should we even include it?
+  - What data to send?
+    - GPS data?
+    - Things from xh?
+    - Battery info? [*If so IDK how to interpret the voltages*]
+    - Flight mode?
 - Look into adding I2C sensors.
-- Add our own estimator and controller to core.
-- Maybe break up `air.cpp` into multiple files.
-- Update telemetry thread and maybe add some config settings for it.
-  - Figure out what to do with ADC data.
-- Try to anticipate potential issues and reduce the probability that `air.cpp` process will ever crash.
-- Test like every individual piece in different config scenarios.
-  - Especially servo thread since I don't know if RCIN and PWM scales are the same.
+- Add functionality to estimator_0.cpp and controller_0.cpp
 - Documentation overview and config setting explanations.
-
-<br>
-
-## DONE
-
-- Merged `test.cpp` into `air.cpp`, so we can include our own estimator and controller.
-- Replaced individual vectors with one large vector in shared memory to be accessed by both C++ and Python.
-- Started a `config.json` file to define the indices for the shared memory.
-- Created Makefile for compiling.
-- Added MPU9250 to IMU loop, allowing data from both IMUs to be available in the y vector.
-- Added some customization options to config file, including as ability to set loop rates.
-- Created Python estimator/controller skeletons and connected them to `air.cpp` using a launch script.
-- Moved sensitive code into `core/` folder, added config validator.
-- Restricted the write capabilities on Python side.
-- Implemented xh/controller vector choices in config, and tried to simplify reads on Python side.
-- Added IMU calibration struct and logic to `air.cpp`, `config.json`, and `launch.py`.
-- Added logger thread and related config settings.
-- Implmented IMU adjustment to `InertialSensor.h` to apply calibration profile.
-- Added IMU adjustment to built-in estimator in case the user decides not to apply calibration to y vector.
-- Improved IMU-related prelaunch checks.
-- Added dependency installation to launch routine.
-- Extracted estimator_0 and controller_0 into dedicated files.
-- Added type validation to config checker.
-- Added names to some servo channels to make controller development easier.
-- Enhanced memory helpers for Python estimator and controller.
-- Fixed servo loop bug and added prelaunch check for mode PWM ranges.
-- Enforced manual RC mode as default.
-- Enabled logger to save incrementally in the event of a crash/shutdown.
-- Removed memory keys from config.json and hid them in core/keys.json.
-- Added system service for launching. Not sure if this is really what we want though.
+- Test like every individual piece in different config scenarios.
+  - Especially servo thread since IDK if I set up the channel indexing and clipping correctly.
+  - Try to anticipate potential issues and reduce the probability that `air.cpp` process will ever crash.
+- Waypoint tracking??

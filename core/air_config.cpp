@@ -37,7 +37,6 @@ air_config::air_config() {
     IMU_LOOP_ENABLED = threads["IMU_ADC"]["ENABLED"].asBool();
     LSM_ENABLED = threads["IMU_ADC"]["USE_LSM9DS1"].asBool();
     MPU_ENABLED = threads["IMU_ADC"]["USE_MPU9250"].asBool();
-    USE_IMU_CALIBRATION = threads["IMU_ADC"]["APPLY_CALIBRATION_PROFILE"].asBool();
     ADC_ENABLED = threads["IMU_ADC"]["USE_ADC"].asBool();
     GPS_ENABLED = threads["GPS_BAROMETER"]["USE_GPS"].asBool();
     MS5611_ENABLED = threads["GPS_BAROMETER"]["USE_MS5611"].asBool();
@@ -62,12 +61,14 @@ air_config::air_config() {
     MAX_THROTTLE = threads["RCIN_SERVO"]["MAX_THROTTLE"].asInt();
     MIN_SERVO = threads["RCIN_SERVO"]["MIN_SERVO"].asInt();
     MAX_SERVO = threads["RCIN_SERVO"]["MAX_SERVO"].asInt();
-    THROTTLE_CHANNEL = threads["RCIN_SERVO"]["THROTTLE_CHANNEL"].asInt();
-    AILERON_CHANNEL = threads["RCIN_SERVO"]["AILERON_CHANNEL"].asInt();
-    ELEVATOR_CHANNEL = threads["RCIN_SERVO"]["ELEVATOR_CHANNEL"].asInt();
-    RUDDER_CHANNEL = threads["RCIN_SERVO"]["RUDDER_CHANNEL"].asInt();
-    FLAPS_CHANNEL = threads["RCIN_SERVO"]["FLAPS_CHANNEL"].asInt();
-    FLIGHT_MODE_CHANNEL = threads["RCIN_SERVO"]["FLIGHT_MODES"]["MODE_CHANNEL"].asInt();
+
+    // subtract one because board shows 1-based indexing, but i think drivers are 0-based.
+    THROTTLE_CHANNEL = threads["RCIN_SERVO"]["THROTTLE_CHANNEL"].asInt() - 1;
+    AILERON_CHANNEL = threads["RCIN_SERVO"]["AILERON_CHANNEL"].asInt() - 1;
+    ELEVATOR_CHANNEL = threads["RCIN_SERVO"]["ELEVATOR_CHANNEL"].asInt() - 1;
+    RUDDER_CHANNEL = threads["RCIN_SERVO"]["RUDDER_CHANNEL"].asInt() - 1;
+    FLAPS_CHANNEL = threads["RCIN_SERVO"]["FLAPS_CHANNEL"].asInt() - 1;
+    FLIGHT_MODE_CHANNEL = threads["RCIN_SERVO"]["FLIGHT_MODES"]["MODE_CHANNEL"].asInt() - 1;
     MANUAL_MODE_MIN = threads["RCIN_SERVO"]["FLIGHT_MODES"]["MANUAL_RANGE"]["LOW"].asInt();
     MANUAL_MODE_MAX = threads["RCIN_SERVO"]["FLIGHT_MODES"]["MANUAL_RANGE"]["HIGH"].asInt();
     SEMI_MODE_MIN = threads["RCIN_SERVO"]["FLIGHT_MODES"]["SEMI-AUTO_RANGE"]["LOW"].asInt();

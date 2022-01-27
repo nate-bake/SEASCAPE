@@ -73,9 +73,8 @@ def check_config():
     check_imu_enabled(cfg)
     check_imu_calibration(cfg)
     check_mode_ranges(cfg)
-    check_servo_channels(cfg)
-    keys = get_keys()
-    channels = get_servo_channels(cfg)
+    keys = check_keys()
+    channels = check_servo_channels(cfg)
     return cfg, keys, channels
 
 
@@ -152,8 +151,6 @@ def check_property_types(cfg):
                             "USE_LSM9DS1": {"type": "boolean"},
                             "USE_MPU9250": {"type": "boolean"},
                             "PRIMARY_IMU": {"type": "string"},
-                            "APPLY_CALIBRATION_PROFILE": {"type": "boolean"},
-                            "USE_ADC": {"type": "boolean"},
                         },
                         "required": [
                             "ENABLED",
@@ -161,8 +158,6 @@ def check_property_types(cfg):
                             "USE_LSM9DS1",
                             "USE_MPU9250",
                             "PRIMARY_IMU",
-                            "APPLY_CALIBRATION_PROFILE",
-                            "USE_ADC",
                         ],
                     },
                     "GPS_BAROMETER": {
@@ -307,12 +302,12 @@ def check_vector_dependencies(cfg):
         xh = t["XH_VECTOR_TO_USE"]
         if xh not in [0, 1]:
             print(f"CONFIG ERROR: Invalid value for THREADS/{name}/XH_VECTOR_TO_USE. Should be either 0 or 1.\n")
+            sys.exit()
         if not threads["ESTIMATOR_" + str(xh)]["ENABLED"]:
             print(
-                f"CONFIG WARNING: {name} is expecting to read values from ESTIMATOR_{xh} which is disabled.\nHaving the xh_{xh} vector empty will likely yield dangerously innacurate results from {name}."
+                f"CONFIG ERROR: {name} is expecting to read values from ESTIMATOR_{xh} which is disabled.\nYou can resolve this by either enabling ESTIMATOR_{xh}, disabling {name}, or by changing the {name}/XH_VECTOR_TO_USE in config.json.\n"
             )
-            if not ask_proceed():
-                sys.exit()
+            sys.exit()
 
     if threads["RCIN_SERVO"]["ENABLED"]:
         i = threads["RCIN_SERVO"]["CONTROLLER_VECTOR_TO_USE"]
@@ -320,9 +315,10 @@ def check_vector_dependencies(cfg):
             print(
                 f"CONFIG ERROR: Invalid value for THREADS/RCIN_SERVO/CONTROLER_VECTOR_TO_USE. Should be either 0 or 1.\n"
             )
+            sys.exit()
         if not threads["CONTROLLER_" + str(i)]["ENABLED"]:
             print(
-                f"CONFIG WARNING: RCIN_SERVO is expecting to read values from CONTROLLER_{i} which is disabled.\nHaving the CONTROLLER_{i} vector empty will likely yield dangerously innacurate servo outputs."
+                f"CONFIG WARNING: RCIN_SERVO thread is expecting to read values from CONTROLLER_{i} which is disabled.\nFor this reason, the only flight mode available will be MANUAL."
             )
             if not ask_proceed():
                 sys.exit()
@@ -409,14 +405,14 @@ def check_servo_channels(cfg):
         t["FLIGHT_MODES"]["MODE_CHANNEL"],
     ]
     for c in channels:
-        if c < 0 or c > 13:
+        if c < 1 or c > 14:
             print("CONFIG ERROR: One or more servo channels was out of bounds.")
-            print("Check the RCIN_SERVO section of config.json, and ensure all channel values are between 0-13.\n")
+            print("Check the RCIN_SERVO section of config.json, and ensure all channel values are within [1,14].\n")
             sys.exit()
     if len(set(channels)) != len(channels):
         print("CONFIG ERROR: Two or more servo types were mapped to the same channel.")
         print(
-            "Check the RCIN_SERVO section of config.json, and ensure all channel values are unique and between 0-13.\n"
+            "Check the RCIN_SERVO section of config.json, and ensure all channel values are unique and within [1,14].\n"
         )
         sys.exit()
 
@@ -445,7 +441,7 @@ def check_mode_ranges(cfg):
         sys.exit()
 
 
-def get_keys():
+def check_keys():
     v = json.load(open("core/keys.json"))
     i = 1
     vectors = v["VECTORS"]
@@ -462,15 +458,37 @@ def get_keys():
     return keys
 
 
-def get_servo_channels(cfg):
-    channels = {}
-    channels["THROTTLE"] = cfg["THREADS"]["RCIN_SERVO"]["THROTTLE_CHANNEL"]
-    channels["ELEVATOR"] = cfg["THREADS"]["RCIN_SERVO"]["ELEVATOR_CHANNEL"]
-    channels["AILERON"] = cfg["THREADS"]["RCIN_SERVO"]["AILERON_CHANNEL"]
-    channels["RUDDER"] = cfg["THREADS"]["RCIN_SERVO"]["RUDDER_CHANNEL"]
-    channels["FLAPS"] = cfg["THREADS"]["RCIN_SERVO"]["FLAPS_CHANNEL"]
-    channels["MODE"] = cfg["THREADS"]["RCIN_SERVO"]["FLIGHT_MODES"]["MODE_CHANNEL"]
-    return channels
+def check_servo_channels(cfg):
+    t = cfg["THREADS"]["RCIN_SERVO"]
+    channel_list = [
+        t["THROTTLE_CHANNEL"],
+        t["ELEVATOR_CHANNEL"],
+        t["AILERON_CHANNEL"],
+        t["FLAPS_CHANNEL"],
+        t["RUDDER_CHANNEL"],
+        t["FLIGHT_MODES"]["MODE_CHANNEL"],
+    ]
+    for c in channel_list:
+        if c < 1 or c > 14:
+            print("CONFIG ERROR: One or more servo channels was out of bounds.")
+            print("Check the RCIN_SERVO section of config.json, and ensure all channel values are within [1,14].\n")
+            sys.exit()
+    if len(set(channel_list)) != len(channel_list):
+        print("CONFIG ERROR: Two or more servo types were mapped to the same channel.")
+        print(
+            "Check the RCIN_SERVO section of config.json, and ensure all channel values are unique and within [1,14].\n"
+        )
+        sys.exit()
+
+    zero_based_channel_dict = {}
+    # subtract one because board shows 1-based indexing, but i think drivers are 0-based.
+    zero_based_channel_dict["THROTTLE"] = t["THROTTLE_CHANNEL"]
+    zero_based_channel_dict["ELEVATOR"] = t["ELEVATOR_CHANNEL"]
+    zero_based_channel_dict["AILERON"] = t["AILERON_CHANNEL"]
+    zero_based_channel_dict["RUDDER"] = t["RUDDER_CHANNEL"]
+    zero_based_channel_dict["FLAPS"] = t["FLAPS_CHANNEL"]
+    zero_based_channel_dict["MODE"] = t["FLIGHT_MODES"]["MODE_CHANNEL"]
+    return zero_based_channel_dict
 
 
 def check_calibration_date(filepath):
