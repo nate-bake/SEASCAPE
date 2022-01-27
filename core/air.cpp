@@ -98,13 +98,14 @@ RCOutput* initialize_pwm(float freq) {
 
 int read_imu(InertialSensor* imu, double* array, std::map<std::string, int>& keys, int index, bool use_calibration) {
     imu->update();
-    if (use_calibration) {
-        imu->adjust();
-    }
     std::string prefix = "y_IMU_" + std::to_string(index) + "_";
     imu->read_accelerometer(array + keys[prefix + "AX"], array + keys[prefix + "AY"], array + keys[prefix + "AZ"]);
     imu->read_gyroscope(array + keys[prefix + "GYRO_P"], array + keys[prefix + "GYRO_Q"], array + keys[prefix + "GYRO_R"]);
     imu->read_magnetometer(array + keys[prefix + "MAG_X"], array + keys[prefix + "MAG_Y"], array + keys[prefix + "MAG_Z"]);
+    imu->adjust();
+    imu->read_accelerometer(array + keys[prefix + "AX_CALIB"], array + keys[prefix + "AY_CALIB"], array + keys[prefix + "AZ_CALIB"]);
+    imu->read_gyroscope(array + keys[prefix + "GYRO_P_CALIB"], array + keys[prefix + "GYRO_Q_CALIB"], array + keys[prefix + "GYRO_R_CALIB"]);
+    imu->read_magnetometer(array + keys[prefix + "MAG_X_CALIB"], array + keys[prefix + "MAG_Y_CALIB"], array + keys[prefix + "MAG_Z_CALIB"]);
     return 0;
 }
 
