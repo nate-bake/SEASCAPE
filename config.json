@@ -44,7 +44,9 @@
     "GPS_BAROMETER": {
       "DESCRIPTION": "Handles sensor reads from the connected GPS and onboard barometer. Updates y vector.",
       "ENABLED": true,
-      "RATE": 10
+      "RATE": 10,
+      "USE_GPS": true,
+      "USE_MS5611": true
     },
     "RCIN_SERVO": {
       "DESCRIPTION": "Handles reads from RC transmitter and sets servo-rail PWM values. Updates rcin and servo vectors.",
