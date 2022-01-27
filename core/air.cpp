@@ -448,19 +448,19 @@ int main(int argc, char* argv[]) {
     usleep(2000000);
     if (cfg.ESTIMATOR_0_ENABLED) {
         pthread_create(&estimation_thread, NULL, &estimation_loop, (void*)&thread_args);
-        printf("Starting estimator_0 thread.\n");
+        printf("Starting Estimator_0 thread.\n");
     }
     if (cfg.CONTROLLER_0_ENABLED) {
         pthread_create(&control_thread, NULL, &control_loop, (void*)&thread_args);
-        printf("Starting controller_0 thread.\n");
+        printf("Starting Controller_0 thread.\n");
     }
     if (cfg.TELEMETRY_LOOP_ENABLED) {
         pthread_create(&telemetry_thread, NULL, &telemetry_loop, (void*)&thread_args);
-        printf("Starting telemetry thread.\n");
+        printf("Starting Telemetry thread.\n");
     }
     if (cfg.LOGGER_LOOP_ENABLED) {
         pthread_create(&logger_thread, NULL, &logger_loop, (void*)&thread_args);
-        printf("Starting logger thread.\n");
+        printf("Starting Logger thread.\n");
     }
 
     if (cfg.IMU_LOOP_ENABLED) {

@@ -42,7 +42,7 @@ sudo reboot
 
 ## THREAD VISUALIZATION
 
-![](https://user-images.githubusercontent.com/34242063/150006000-1938b67f-508f-4560-9350-cd1173a39e58.gif)
+![](https://user-images.githubusercontent.com/34242063/151286155-4905c772-6fcf-41a0-b203-5f103e4db80e.gif)
 
 - ![#F9B3A7](https://via.placeholder.com/15/F9B3A7/000000?text=+) &nbsp;Core Threads _[C++]_
 - ![#F14124](https://via.placeholder.com/15/F14124/000000?text=+) &nbsp;Custom Threads _[Python]_
