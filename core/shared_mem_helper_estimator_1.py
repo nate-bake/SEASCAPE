@@ -10,12 +10,16 @@ class helper:
         self.gps_updates = 0
         self.xh_updates = 0
 
-    def read_y(self):
+    def read_y(self, use_calibrated_imu_data=True):
         indexes = []
         for key in self.keys.keys():
             if "ADC" in key:
                 continue  # not really important for estimator
             if key.startswith("y_"):
+                if use_calibrated_imu_data and "RAW" in key:
+                    continue
+                if not use_calibrated_imu_data and "CALIB" in key:
+                    continue
                 indexes.append(self.keys[key])
         while True:
             y = [struct.unpack("d", self.shm.read(8, index * 8))[0] for index in indexes]

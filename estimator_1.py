@@ -25,15 +25,6 @@ def estimator_loop(mem: helper.helper, max_sleep: float):
             IMU_1_MAG_X,
             IMU_1_MAG_Y,
             IMU_1_MAG_Z,
-            IMU_1_AX_CALIB,
-            IMU_1_AY_CALIB,
-            IMU_1_AZ_CALIB,
-            IMU_1_GYRO_P_CALIB,
-            IMU_1_GYRO_Q_CALIB,
-            IMU_1_GYRO_R_CALIB,
-            IMU_1_MAG_X_CALIB,
-            IMU_1_MAG_Y_CALIB,
-            IMU_1_MAG_Z_CALIB,
             IMU_2_AX,
             IMU_2_AY,
             IMU_2_AZ,
@@ -43,15 +34,6 @@ def estimator_loop(mem: helper.helper, max_sleep: float):
             IMU_2_MAG_X,
             IMU_2_MAG_Y,
             IMU_2_MAG_Z,
-            IMU_2_AX_CALIB,
-            IMU_2_AY_CALIB,
-            IMU_2_AZ_CALIB,
-            IMU_2_GYRO_P_CALIB,
-            IMU_2_GYRO_Q_CALIB,
-            IMU_2_GYRO_R_CALIB,
-            IMU_2_MAG_X_CALIB,
-            IMU_2_MAG_Y_CALIB,
-            IMU_2_MAG_Z_CALIB,
             BARO_PRES,
             GPS_POSN_LAT,
             GPS_POSN_LON,
@@ -60,7 +42,7 @@ def estimator_loop(mem: helper.helper, max_sleep: float):
             GPS_VEL_E,
             GPS_VEL_D,
             GPS_STATUS,
-        ] = mem.read_y()
+        ] = mem.read_y(use_calibrated_imu_data=True)
 
         # read previous xh data
         [X, Y, Z, VT, ALPHA, BETA, PHI, THETA, PSI, P, Q, R] = mem.read_xh()

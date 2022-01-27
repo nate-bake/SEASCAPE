@@ -99,9 +99,9 @@ RCOutput* initialize_pwm(float freq) {
 int read_imu(InertialSensor* imu, double* array, std::map<std::string, int>& keys, int index, bool use_calibration) {
     imu->update();
     std::string prefix = "y_IMU_" + std::to_string(index) + "_";
-    imu->read_accelerometer(array + keys[prefix + "AX"], array + keys[prefix + "AY"], array + keys[prefix + "AZ"]);
-    imu->read_gyroscope(array + keys[prefix + "GYRO_P"], array + keys[prefix + "GYRO_Q"], array + keys[prefix + "GYRO_R"]);
-    imu->read_magnetometer(array + keys[prefix + "MAG_X"], array + keys[prefix + "MAG_Y"], array + keys[prefix + "MAG_Z"]);
+    imu->read_accelerometer(array + keys[prefix + "AX_RAW"], array + keys[prefix + "AY_RAW"], array + keys[prefix + "AZ_RAW"]);
+    imu->read_gyroscope(array + keys[prefix + "GYRO_P_RAW"], array + keys[prefix + "GYRO_Q_RAW"], array + keys[prefix + "GYRO_R_RAW"]);
+    imu->read_magnetometer(array + keys[prefix + "MAG_X_RAW"], array + keys[prefix + "MAG_Y_RAW"], array + keys[prefix + "MAG_Z_RAW"]);
     imu->adjust();
     imu->read_accelerometer(array + keys[prefix + "AX_CALIB"], array + keys[prefix + "AY_CALIB"], array + keys[prefix + "AZ_CALIB"]);
     imu->read_gyroscope(array + keys[prefix + "GYRO_P_CALIB"], array + keys[prefix + "GYRO_Q_CALIB"], array + keys[prefix + "GYRO_R_CALIB"]);
@@ -353,7 +353,7 @@ void* telemetry_loop(void* arguments) {
         int sent0 = port->write_message(msg0);
         // the transmitted values may not be correct but i just want to verify that mission planner displays them.
         mavlink_message_t msg30;
-        int packed30 = mavlink_msg_attitude_pack(1, 255, &msg30, t, (float)array[keys["y_IMU_1_AX"]] / 20 * M_PI, (float)array[keys["y_IMU_1_AY"]] / 20 * M_PI, 0, 0, 0, 0);
+        int packed30 = mavlink_msg_attitude_pack(1, 255, &msg30, t, (float)array[keys["y_IMU_1_AX_CALIB"]] / 20 * M_PI, (float)array[keys["y_IMU_1_AY_CALIB"]] / 20 * M_PI, 0, 0, 0, 0);
         int sent30 = port->write_message(msg30);
         mavlink_message_t msg33;
         int packed33 = mavlink_msg_global_position_int_pack(1, 255, &msg33, t, 0, 0, 0, -1 * array[keys["xh_0_Z"]], array[keys["y_GPS_VEL_N"]], array[keys["y_GPS_VEL_E"]], array[keys["y_GPS_VEL_D"]], 0);
