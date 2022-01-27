@@ -11,7 +11,7 @@ This system handles sensor interaction and provides data from GPS, barometer, an
 After cloning, the launch file should hopefully take care of everything:
 
 ```
-git clone <URL-HERE>/SEASCAPE.git
+git clone https://github.com/nate-bake/SEASCAPE
 cd SEASCAPE/
 sudo python3 launch.py
 ```
