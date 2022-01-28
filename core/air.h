@@ -37,3 +37,4 @@ void* imu_loop(void* arguments);
 void* gps_baro_loop(void* arguments);
 void* servo_loop(void* arguments);
 void* telemetry_loop(void* arguments);
+void* logger_loop(void* arguments);
