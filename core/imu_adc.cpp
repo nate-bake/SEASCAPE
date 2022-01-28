@@ -5,7 +5,7 @@
 #include "Navio2/C++/ADC_Navio2.h"
 
 
-InertialSensor* initialize_imu(std::string id = "LSM9DS1", struct imu_calibration_profile* calibration_profile) {
+InertialSensor* initialize_imu(std::string id, struct imu_calibration_profile* calibration_profile) {
     InertialSensor* imu;
     if (id == "LSM9DS1") {
         imu = new LSM9DS1();
