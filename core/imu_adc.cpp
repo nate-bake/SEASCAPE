@@ -5,7 +5,7 @@
 #include "Navio2/C++/ADC_Navio2.h"
 
 
-InertialSensor* initialize_imu(std::string id = "LSM9DS1") {
+InertialSensor* initialize_imu(std::string id = "LSM9DS1", struct imu_calibration_profile* calibration_profile) {
     InertialSensor* imu;
     if (id == "LSM9DS1") {
         imu = new LSM9DS1();
@@ -21,15 +21,15 @@ InertialSensor* initialize_imu(std::string id = "LSM9DS1") {
     imu->initialize();
 
     std::ifstream file("data/calibration/" + id + "_calibration.bin", std::ios::binary);
-    struct imu_calibration_profile calibration_profile;
+
 
     char* memblock = new char[sizeof(double) * 9];
     file.read(memblock, sizeof(double) * 9);
-    calibration_profile.offsets = (double*)memblock;
+    calibration_profile->offsets = (double*)memblock;
 
     char* memblock2 = new char[sizeof(double) * 9];
     file.read(memblock2, sizeof(double) * 9);
-    calibration_profile.matrix = (double*)memblock2;
+    calibration_profile->matrix = (double*)memblock2;
 
     if (!file.good()) {
         std::cout << "ERROR: Could not read 'data/calibration/" << id << "_calibration.bin'.\n";
@@ -37,7 +37,7 @@ InertialSensor* initialize_imu(std::string id = "LSM9DS1") {
     }
     file.close();
 
-    imu->set_calibration_profile(&calibration_profile);
+    imu->set_calibration_profile(calibration_profile);
     return imu;
 }
 
@@ -87,11 +87,13 @@ void* imu_loop(void* arguments) {
     ADC* adc;
     if (cfg->LSM_ENABLED) {
         printf("Initializing IMU.\t\t\t[LSM9DS1]\n");
-        lsm = initialize_imu("LSM9DS1");
+        struct imu_calibration_profile calibration_profile;
+        lsm = initialize_imu("LSM9DS1", &calibration_profile);
     }
     if (cfg->MPU_ENABLED) {
         printf("Initializing IMU.\t\t\t[MPU9250]\n");
-        mpu = initialize_imu("MPU9250");
+        struct imu_calibration_profile calibration_profile;
+        mpu = initialize_imu("MPU9250", &calibration_profile);
     }
     if (cfg->ADC_ENABLED) {
         printf("Initializing ADC.\n");
