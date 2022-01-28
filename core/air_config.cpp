@@ -9,14 +9,12 @@ air_config::air_config() {
     Json::Reader reader;
     Json::Value cfg;
 
-    std::ifstream file("config.json");
+    std::ifstream file("config.json"); // we can assume config file has been verified by prelaunch_checks.py
 
     if (!reader.parse(file, cfg)) {
         std::cout << reader.getFormattedErrorMessages();
         exit(1);
     }
-
-    // we can assume config file has been verified by prelaunch_checks.py
 
     auto threads = cfg["THREADS"];
 
@@ -80,10 +78,8 @@ air_config::air_config() {
     AUTO_MODE_MIN = threads["RCIN_SERVO"]["FLIGHT_MODES"]["AUTO_RANGE"]["LOW"].asInt();
     AUTO_MODE_MAX = threads["RCIN_SERVO"]["FLIGHT_MODES"]["AUTO_RANGE"]["HIGH"].asInt();
 
-    // read memory keys from a separate file
-
     Json::Value v;
-    std::ifstream key_file("core/keys.json");
+    std::ifstream key_file("core/keys.json"); // read memory keys from a separate file
 
     if (!reader.parse(key_file, v)) {
         std::cout << reader.getFormattedErrorMessages();

@@ -15,13 +15,14 @@ InertialSensor* initialize_imu(std::string id, struct imu_calibration_profile* c
         return nullptr;
     }
     if (!imu->probe()) {
-        printf("Sensor not enabled\n");
+        printf("IMU initialization FAILED.\t\t[%s]\n", id);
         return nullptr;
     }
+    printf("Initializing IMU.\t\t\t[%s]\n", id);
     imu->initialize();
 
     std::ifstream file("data/calibration/" + id + "_calibration.bin", std::ios::binary);
-
+    printf("Loading IMU calibration profile.\t[%s]\n", id);
 
     char* memblock = new char[sizeof(double) * 9];
     file.read(memblock, sizeof(double) * 9);
@@ -43,6 +44,7 @@ InertialSensor* initialize_imu(std::string id, struct imu_calibration_profile* c
 
 ADC* initialize_adc() {
     ADC_Navio2* adc = new ADC_Navio2();
+    printf("Initializing ADC.\n");
     adc->initialize();
     return adc;
 }
@@ -86,17 +88,14 @@ void* imu_loop(void* arguments) {
     InertialSensor* mpu;
     ADC* adc;
     if (cfg->LSM_ENABLED) {
-        printf("Initializing IMU.\t\t\t[LSM9DS1]\n");
         struct imu_calibration_profile calibration_profile;
         lsm = initialize_imu("LSM9DS1", &calibration_profile);
     }
     if (cfg->MPU_ENABLED) {
-        printf("Initializing IMU.\t\t\t[MPU9250]\n");
         struct imu_calibration_profile calibration_profile;
         mpu = initialize_imu("MPU9250", &calibration_profile);
     }
     if (cfg->ADC_ENABLED) {
-        printf("Initializing ADC.\n");
         adc = initialize_adc();
     }
     usleep(500000);

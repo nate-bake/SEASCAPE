@@ -3,19 +3,30 @@
 #include "Navio2/C++/RCInput_Navio2.h"
 #include "Navio2/C++/RCOutput_Navio2.h"
 
+RCInput* initialize_rcin() {
+    RCInput* rcin = new RCInput_Navio2();
+    printf("Initializing RCIN.\n");
+    rcin->initialize();
+    return rcin;
+}
 
 RCOutput* initialize_pwm(float freq) {
     RCOutput* pwm = new RCOutput_Navio2();
+    printf("Initializing Servos.\n");
     for (int i = 0; i < 14; i++) {
         if (!pwm->initialize(i)) {
-            return nullptr;
+            pwm = nullptr;
+            break;
+        } else if (!pwm->set_frequency(i, freq)) {
+            pwm = nullptr;
+            break;
+        } else if (!pwm->enable(i)) {
+            pwm = nullptr;
+            break;
         }
-        if (!pwm->set_frequency(i, freq)) {
-            return nullptr;
-        }
-        if (!pwm->enable(i)) {
-            return nullptr;
-        }
+    }
+    if (!pwm) {
+        printf("Failed to initialize servo-rail PWM. Could be lacking root privilege.\n");
     }
     return pwm;
 }
@@ -41,7 +52,7 @@ int write_servo(RCOutput* pwm, double* array, const air_config* cfg) {
     int mode_value = (int)array[keys["rcin_CHANNEL_" + std::to_string(cfg->FLIGHT_MODE_CHANNEL)]];
     array[keys["servo_MODE_FLAG"]] = 0; // manual
     if ((cfg->SERVO_CONTROLLER == 0 && !cfg->CONTROLLER_0_ENABLED) || (cfg->SERVO_CONTROLLER == 1 && !cfg->CONTROLLER_1_ENABLED)) {
-        // stay in manual mode no matter what.
+        // stay in manual mode
     } else if (cfg->AUTO_MODE_MIN <= mode_value && mode_value < cfg->AUTO_MODE_MAX) {
         array[keys["servo_MODE_FLAG"]] = 2; // auto
     } else if (cfg->SEMI_MODE_MIN <= mode_value && mode_value < cfg->SEMI_MODE_MAX) {
@@ -109,17 +120,10 @@ void* servo_loop(void* arguments) {
     double* array = args->array;
     const air_config* cfg = args->cfg;
     std::map<std::string, int> keys = cfg->keys;
-    usleep(200000);
-    usleep(50000);
-    RCInput* rcin = new RCInput_Navio2();
-    printf("Initializing RCIN.\n");
-    rcin->initialize();
-    printf("Initializing Servos.\n");
+    usleep(250000);
+    RCInput* rcin = initialize_rcin();
     RCOutput* pwm = initialize_pwm(cfg->PWM_FREQUENCY);
-    if (!pwm) {
-        printf("Failed to initialize servo-rail PWM. Could be lacking root privilege.\n");
-    }
-    usleep(500000);
+    usleep(250000);
     int max_sleep = hertz_to_microseconds(cfg->SERVO_LOOP_RATE);
     uint64_t start_time, now;
 

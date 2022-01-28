@@ -1,7 +1,6 @@
 #include "air.h"
 
 void* estimation_loop(void* arguments) {
-    usleep(5000000);
     thread_struct* args = (thread_struct*)arguments;
     double* array = args->array;
     const air_config* cfg = args->cfg;

@@ -1,7 +1,6 @@
 #include "air.h"
 
 void* control_loop(void* arguments) {
-    usleep(1500000);
     thread_struct* args = (thread_struct*)arguments;
     double* array = args->array;
     const air_config* cfg = args->cfg;

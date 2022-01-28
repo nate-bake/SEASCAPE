@@ -6,10 +6,11 @@
 
 Ublox* initialize_gps(int milliseconds) {
     Ublox* gps = new Ublox();
+    printf("Initializing GPS.\n");
     if (gps->testConnection()) {
         gps->configureSolutionRate(milliseconds);
     } else {
-        printf("Ublox initialization FAILED\n");
+        printf("GPS initialization FAILED.\n");
         return nullptr;
     }
     return gps;
@@ -17,9 +18,11 @@ Ublox* initialize_gps(int milliseconds) {
 
 MS5611* initialize_baro() {
     MS5611* barometer = new MS5611();
+    printf("Initializing Barometer.\t\t\t[MS5611]\n");
     barometer->initialize();
     if (!barometer->testConnection()) {
-        return NULL;
+        printf("Barometer initialization FAILED.\n");
+        return nullptr;
     }
     barometer->refreshPressure();
     return barometer;
@@ -35,14 +38,12 @@ void* gps_baro_loop(void* arguments) {
     Ublox* gps;
     MS5611* barometer;
     if (cfg->GPS_ENABLED) {
-        printf("Initializing GPS.\n");
         gps = initialize_gps(200);
     }
     if (cfg->MS5611_ENABLED) {
-        printf("Initializing Barometer.\t\t\t[MS5611]\n");
         barometer = initialize_baro();
     }
-    usleep(500000);
+    usleep(350000);
     int max_sleep = hertz_to_microseconds(cfg->GPS_LOOP_RATE);
     uint64_t start_time, now;
 

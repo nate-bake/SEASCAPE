@@ -69,12 +69,11 @@ std::map<int, std::string> get_log_keys(const air_config* cfg, std::map<std::str
                 } else if (hasEnding(column_name, "CHANNEL_" + std::to_string(cfg->FLIGHT_MODE_CHANNEL))) {
                     replace(column_name, "CHANNEL_" + std::to_string(cfg->FLIGHT_MODE_CHANNEL), "MODE");
                 } else if (column_name.find("CHANNEL_") != std::string::npos) {
-                    // need to increment channel to have 1-based indexing in log.
                     std::stringstream ss(column_name);
                     std::string segment;
                     while (std::getline(ss, segment, '_'));
                     try {
-                        int c = std::stoi(segment) + 1;
+                        int c = std::stoi(segment) + 1; // increment channels for 1-based indexing in log.
                         replace(column_name, segment, std::to_string(c));
                     }
                     catch (...) { continue; }
