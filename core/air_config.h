@@ -1,8 +1,5 @@
 #pragma once
 
-#include <map>
-#include <string>
-
 class air_config {
 
 public:
@@ -31,7 +28,6 @@ public:
     bool MS5611_ENABLED;
     bool GPS_ENABLED;
     std::string PRIMARY_IMU;
-    bool USE_IMU_CALIBRATION;
     bool LOGGER_LOOP_ENABLED;
     bool LOG_SENSOR_DATA;
     bool LOG_ESTIMATOR_0;

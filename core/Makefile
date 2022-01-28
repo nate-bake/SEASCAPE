@@ -1,34 +1,44 @@
 default: clean_upper air
 
-air: air.o logger.o estimator_0.o controller_0.o air_config.o serial_port.o Navio2/C++/Navio.o
-	g++ air.o logger.o estimator_0.o controller_0.o air_config.o serial_port.o Navio2/C++/Navio.o -o air -std=c++11 -pthread -Wno-psabi -ljsoncpp
+air: air.o imu_adc.o gps_baro.o rcin_servo.o telemetry.o logger.o estimator_0.o controller_0.o air_config.o Navio
+	g++ *.o Navio2/Navio.o -o air -std=c++11 -Wno-psabi -pthread -ljsoncpp
 
-air.o: air.h air.cpp
-	g++ -c air.cpp -std=c++11 -Wno-psabi -pthread -Wno-psabi -ljsoncpp
+air.o:
+	g++ -c air.cpp -std=c++11 -Wno-psabi -pthread
 
-logger.o: logger.cpp
-	g++ -c logger.cpp -std=c++11 -Wno-psabi -pthread -Wno-psabi -ljsoncpp
+imu_adc.o: 
+	g++ -c imu_adc.cpp -std=c++11 -Wno-psabi
 
-estimator_0.o: estimator_0.cpp
-	g++ -c estimator_0.cpp -std=c++11 -Wno-psabi -pthread -Wno-psabi -ljsoncpp
+gps_baro.o: 
+	g++ -c gps_baro.cpp -std=c++11 -Wno-psabi
 
-controller_0.o: controller_0.cpp
-	g++ -c controller_0.cpp -std=c++11 -Wno-psabi -pthread -Wno-psabi -ljsoncpp
+rcin_servo.o: 
+	g++ -c rcin_servo.cpp -std=c++11 -Wno-psabi
 
-air_config.o: air_config.h air_config.cpp
-	g++ -c air_config.cpp -std=c++11
+telemetry.o: 
+	g++ -c telemetry.cpp -std=c++11 -Wno-psabi
 
-serial_port.o: serial_port.h serial_port.cpp
-	g++ -c serial_port.cpp -std=c++11
+logger.o:
+	g++ -c logger.cpp -std=c++11 -Wno-psabi
 
-Navio2/C++/Navio.o:
-	$(MAKE) -C Navio2/C++
+estimator_0.o:
+	g++ -c estimator_0.cpp -std=c++11 -Wno-psabi
+
+controller_0.o:
+	g++ -c controller_0.cpp -std=c++11 -Wno-psabi
+
+air_config.o:
+	g++ -c air_config.cpp -std=c++11 -Wno-psabi -ljsoncpp
+
+Navio:
+	$(MAKE) -C Navio2/
 
 clean_upper:
-	-rm -f *.o
 	-rm -f air
+	-rm -f *.o
 
 clean:
-	-rm -f *.o
-	-rm -f Navio2/C++/*.o
 	-rm -f air
+	-rm -f *.o
+	-rm -f Navio2/*.o
+	-rm -f Navio2/C++/*.o
