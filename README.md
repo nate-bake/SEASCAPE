@@ -133,7 +133,7 @@ sudo reboot
 
 - Built-in estimator implemented in C++.
   - TODO include more info here once we actually implement it.
-- Reads sensor data from `y` and updates values in `xh_0`.
+- Reads sensor data from the `y` vector and updates values in the `xh_0` vector.
 - Requires GPS and one IMU to be enabled in order to function properly. If both onboard IMUs are enabled, _IMU_1_ will be used (defined by `PRIMARY_IMU` in `config.json`).
 - Config settings:
   - `"ENABLED": true`
@@ -143,7 +143,7 @@ sudo reboot
 ### ESTIMATOR_1
 
 - Custom estimator to be implemented in Python.
-- Reads sensor data from `y` and updates values in `xh_1`.
+- Reads sensor data from the `y` vector and updates values in the `xh_1` vector.
   - Read/write actions to shared memory have been abstracted and are handled by `core/shared_mem_helper_estimator_1.py`.
   - Can elect to use calibrated IMU data, or raw if you prefer to do you own calibration routine.
 - Config settings:
@@ -154,7 +154,7 @@ sudo reboot
 ### CONTROLLER_0
 
 - Built-in controller implemented in C++.
-- Reads state data from the specified vector and updates values in `controller_0` to be applied to servos.
+- Reads state data from the specified xh vector and updates values in the `controller_0` vector to be applied to servos.
 - Config settings:
   - `"ENABLED": true`
   - `"RATE": 50`
@@ -166,7 +166,7 @@ sudo reboot
 ### CONTROLLER_1
 
 - Custom controller implemented in Python.
-- Reads state data from the specified vector and updates values in `controller_1` to be applied to servos.
+- Reads state data from the specified xh vector and updates values in the `controller_1` vector to be applied to servos.
   - Read/write actions to shared memory have been abstracted and are handled by `core/shared_mem_helper_controller_1.py`.
     - Channels in custom servo object can be accessed via:
       - Array indexing (1-based) : `mem.servos[2]`
@@ -195,6 +195,8 @@ sudo reboot
     - `"LOG_CONTROLLER_0": false`
     - `"LOG_CONTROLLER_1": true`
     - `"LOG_RCIN_SERVO": true`
+
+<br>
 
 ## VECTOR DETAILS
 
