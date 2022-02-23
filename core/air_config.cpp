@@ -74,9 +74,9 @@ air_config::air_config() {
     MANUAL_MODE_MAX = threads["RCIN_SERVO"]["FLIGHT_MODES"]["MANUAL_RANGE"]["HIGH"].asInt();
     SEMI_MODE_MIN = threads["RCIN_SERVO"]["FLIGHT_MODES"]["SEMI-AUTO_RANGE"]["LOW"].asInt();
     SEMI_MODE_MAX = threads["RCIN_SERVO"]["FLIGHT_MODES"]["SEMI-AUTO_RANGE"]["HIGH"].asInt();
-    SEMI_DEADZONE = threads["RCIN_SERVO"]["FLIGHT_MODES"]["SEMI-AUTO_RANGE"]["DEADZONE"].asInt();
     AUTO_MODE_MIN = threads["RCIN_SERVO"]["FLIGHT_MODES"]["AUTO_RANGE"]["LOW"].asInt();
     AUTO_MODE_MAX = threads["RCIN_SERVO"]["FLIGHT_MODES"]["AUTO_RANGE"]["HIGH"].asInt();
+    SEMI_DEADZONE = threads["RCIN_SERVO"]["FLIGHT_MODES"]["SEMI-AUTO_DEADZONE"].asInt();
 
     Json::Value v;
     std::ifstream key_file("core/keys.json"); // read memory keys from a separate file

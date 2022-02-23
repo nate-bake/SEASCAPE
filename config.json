@@ -1,7 +1,7 @@
 {
   "THREADS": {
     "LOGGER": {
-      "DESCRIPTION": "Creates a log file when program terminates. Stores values from vectors selected below.",
+      "DESCRIPTION": "Creates a CSV file and appends data from the selected vectors at a specified rate.",
       "ENABLED": true,
       "RATE": 50,
       "LOG_SENSOR_DATA": true,
@@ -68,13 +68,13 @@
         },
         "SEMI-AUTO_RANGE": {
           "LOW": 1250,
-          "HIGH": 1750,
-          "DEADZONE": 50
+          "HIGH": 1750
         },
         "AUTO_RANGE": {
           "LOW": 1750,
           "HIGH": 2250
-        }
+        },
+        "SEMI-AUTO_DEADZONE": 50
       },
       "MIN_THROTTLE": 1000,
       "MAX_THROTTLE": 1750,

@@ -199,12 +199,10 @@ def check_property_types(cfg):
                                         "properties": {
                                             "LOW": {"type": "integer"},
                                             "HIGH": {"type": "integer"},
-                                            "DEADZONE": {"type": "integer"},
                                         },
                                         "required": [
                                             "LOW",
                                             "HIGH",
-                                            "DEADZONE",
                                         ],
                                     },
                                     "AUTO_RANGE": {
@@ -215,12 +213,14 @@ def check_property_types(cfg):
                                         },
                                         "required": ["LOW", "HIGH"],
                                     },
+                                    "SEMI-AUTO_DEADZONE": {"type": "integer"},
                                 },
                                 "required": [
                                     "MODE_CHANNEL",
                                     "MANUAL_RANGE",
                                     "SEMI-AUTO_RANGE",
                                     "AUTO_RANGE",
+                                    "SEMI-AUTO_DEADZONE",
                                 ],
                             },
                             "MIN_THROTTLE": {"type": "integer"},

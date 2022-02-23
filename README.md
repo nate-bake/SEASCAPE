@@ -64,13 +64,16 @@ sudo reboot
 
 - Reads the following data and stores it in the `y` vector.
   - Accelerometer, gyroscope, and magnetometer data from both onboard IMUs [*LSM9DS1, MPU9250*].
+    - Includes both raw and calibrated data from each IMU.
   - Voltage from board, servo rail, and power connector.
 - Config settings:
   - `"ENABLED": true`
   - `"RATE": 100`
-  - `"USE_LSM9DS1": true`
-  - `"USE_MPU9250": true`
-  - `"USE_ADC": true`
+    - Loop frequency defined in hertz [must be > 0].
+  - Sensor switches (make sure at least one IMU is enabled):
+    - `"USE_LSM9DS1": true`
+    - `"USE_MPU9250": true`
+    - `"USE_ADC": true`
   - `"PRIMARY_IMU": "MPU9250"`
     - If both onboard IMUs are enabled, this will dictate which is considered _IMU_1_.
 
@@ -82,7 +85,7 @@ sudo reboot
 - Config settings:
   - `"ENABLED": true`
   - `"RATE": 10`
-    - Loop frequency defined in hertz. Note that rates > 20 are likely unattainable for these sensors.
+    - Loop frequency defined in hertz. Note that any rate above 5 or above 20 is likely unattainable for the GPS or barometer, respectively.
   - `"USE_GPS": true`
   - `"USE_MS5611": true`
 
@@ -90,41 +93,112 @@ sudo reboot
 
 - Reads RCInput values for each channel and stores it in the `rcin` vector.
 - Determines flight mode from specified RCInput channel.
-  - If flight mode is MANUAL, update servo-rail PWM from RCInput values.
-    - MANUAL mode is the default mode.
-  - If flight mode is AUTO, update servo-rail PWM from specified controller vector.
-  - If flight mode is SEMI-AUTO, behave like auto mode unless RCInput joysticks are not centered.
+  - If flight mode is _MANUAL_, update servo-rail PWM from RCInput values.
+    - _MANUAL_ mode is the default mode.
+  - If flight mode is _AUTO_, update servo-rail PWM from specified controller vector.
+  - If flight mode is _SEMI-AUTO_, behave like auto mode unless RCInput joysticks are not centered.
 - Config settings:
-  - `"ENABLED": true,`
-  - `"RATE": 50,`
-    - Loop frequency defined in hertz. Should be <= PWM_FREQUENCY.
-  - `"PWM_FREQUENCY": 50,`
+  - `"ENABLED": true`
+  - `"RATE": 50`
+    - Loop frequency defined in hertz [recommended: = _PWM_FREQUENCY_].
+  - `"PWM_FREQUENCY": 50`
     - Rate at which PWM pulses are sent.
-  - `"CONTROLLER_VECTOR_TO_USE": 0,`
-    - Controller to reference when in AUTO mode. Either 0 or 1.
+  - `"CONTROLLER_VECTOR_TO_USE": 0`
+    - Controller to reference when in _AUTO_ mode. Either 0 or 1.
     - If the specified controller is not enabled, only MANUAL mode will be available.
   - The following channels are needed for logging and built-in controller purposes. Valid range: [1,14].
-    - `"THROTTLE_CHANNEL": 1,`
-    - `"AILERON_CHANNEL": 2,`
-    - `"ELEVATOR_CHANNEL": 3,`
-    - `"RUDDER_CHANNEL": 4,`
-    - `"FLAPS_CHANNEL": 6,`
-    - `"FLIGHT_MODES/MODE_CHANNEL": 5,`
+    - `"THROTTLE_CHANNEL": 1`
+    - `"AILERON_CHANNEL": 2`
+    - `"ELEVATOR_CHANNEL": 3`
+    - `"RUDDER_CHANNEL": 4`
+    - `"FLAPS_CHANNEL": 6`
+    - `"FLIGHT_MODES/MODE_CHANNEL": 5`
       - RC channel which is used to determine flight mode.
   - Flight mode ranges defined below are lower-limit inclusive, upper-limit exclusive:
-    - `"FLIGHT_MODES/MANUAL_RANGE/LOW": 750,`
+    - `"FLIGHT_MODES/MANUAL_RANGE/LOW": 750`
     - `"FLIGHT_MODES/MANUAL_RANGE/HIGH": 1250`
-    - `"FLIGHT_MODES/SEMI-AUTO_RANGE/LOW": 1250,`
+    - `"FLIGHT_MODES/SEMI-AUTO_RANGE/LOW": 1250`
     - `"FLIGHT_MODES/SEMI-AUTO_RANGE/HIGH": 1750`
     - `"FLIGHT_MODES/AUTO_RANGE/LOW": 1750,`
     - `"FLIGHT_MODES/AUTO_RANGE/HIGH": 2250`
-  - `"FLIGHT_MODES/SEMI-AUTO_RANGE/DEADZONE": 50`
-    - Amount required to move either AILERON or ELEVATOR away from 1500 to take manual control.
-  - The following are used to clip RCInput and Controller channel values before sending to servo-rail.
+  - `"FLIGHT_MODES/SEMI-AUTO_DEADZONE": 50`
+    - Amount required to move either aileron or elevator joystick away from 1500 to take manual control.
+  - The following are used to clip RCInput and controller channel values before sending to servo-rail.
     - `"MIN_THROTTLE": 1000`
     - `"MAX_THROTTLE": 1750`
     - `"MIN_SERVO": 1250`
     - `"MAX_SERVO": 1750`
+
+### ESTIMATOR_0
+
+- Built-in estimator implemented in C++.
+  - TODO include more info here once we actually implement it.
+- Reads sensor data from `y` and updates values in `xh_0`.
+- Requires GPS and one IMU to be enabled in order to function properly. If both onboard IMUs are enabled, _IMU_1_ will be used (defined by `PRIMARY_IMU` in `config.json`).
+- Config settings:
+  - `"ENABLED": true`
+  - `"RATE": 100`
+    - Loop frequency defined in hertz [must be > 0].
+
+### ESTIMATOR_1
+
+- Custom estimator to be implemented in Python.
+- Reads sensor data from `y` and updates values in `xh_1`.
+  - Read/write actions to shared memory have been abstracted and are handled by `core/shared_mem_helper_estimator_1.py`.
+  - Can elect to use calibrated IMU data, or raw if you prefer to do you own calibration routine.
+- Config settings:
+  - `"ENABLED": true`
+  - `"RATE": 100`
+    - Loop frequency defined in hertz [must be > 0].
+
+### CONTROLLER_0
+
+- Built-in controller implemented in C++.
+- Reads state data from the specified vector and updates values in `controller_0` to be applied to servos.
+- Config settings:
+  - `"ENABLED": true`
+  - `"RATE": 50`
+    - Loop frequency defined in hertz [must be > 0].
+  - `"XH_VECTOR_TO_USE": 0`
+    - `0` for built-in estimator, `1` for custom estimator.
+    - Make sure that the estimator thread is enabled for the selected vector.
+
+### CONTROLLER_1
+
+- Custom controller implemented in Python.
+- Reads state data from the specified vector and updates values in `controller_1` to be applied to servos.
+  - Read/write actions to shared memory have been abstracted and are handled by `core/shared_mem_helper_controller_1.py`.
+    - Channels in custom servo object can be accessed via:
+      - Array indexing (1-based) : `mem.servos[2]`
+      - Object attributes (channel-names defined in `config.json`): `mem.servos.aileron`
+    - This servo object does not modify PWM directly, but rather proposes new vales to the _RCIN_SERVO_ thread.
+- Config settings:
+  - `"ENABLED": true`
+  - `"RATE": 50`
+    - Loop frequency defined in hertz [must be > 0].
+  - `"XH_VECTOR_TO_USE": 1`
+    - `0` for built-in estimator, `1` for custom estimator.
+    - Make sure that the estimator thread is enabled for the selected vector.
+
+### LOGGER
+
+- Creates a CSV file and appends data from the selected vectors at a specified rate.
+- Logs can be found in `data/logs/` and are named based on time of launch.
+- Config settings:
+  - `"ENABLED": true`
+  - `"RATE": 50`
+    - Loop frequency defined in hertz [must be > 0].
+  - Vectors to log [if associated threads are disabled, those columns are automatically omitted]:
+    - `"LOG_SENSOR_DATA": true`
+    - `"LOG_ESTIMATOR_0": true`
+    - `"LOG_ESTIMATOR_1": false`
+    - `"LOG_CONTROLLER_0": false`
+    - `"LOG_CONTROLLER_1": true`
+    - `"LOG_RCIN_SERVO": true`
+
+## VECTOR DETAILS
+
+- The keys for each vector are defined in `core/keys.json` but should not be modified unless you really know what you're doing.
 
 <br>
 
