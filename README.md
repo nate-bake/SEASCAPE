@@ -200,7 +200,7 @@ sudo reboot
 
 ## VECTOR DETAILS
 
-- The keys for each vector are defined in `core/keys.json` but should not be modified unless you really know what you're doing.
+- The keys for each vector are defined in [core/keys.json](core/keys.json) but should not be modified unless you really know what you're doing.
 
 <br>
 
